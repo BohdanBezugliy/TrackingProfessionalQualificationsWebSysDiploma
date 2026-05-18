@@ -19,7 +19,7 @@ public class AcademicRankEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "lecture_academic_rank_id")
-    private Integer lectureAcademicRankId;
+    private Long lectureAcademicRankId;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)

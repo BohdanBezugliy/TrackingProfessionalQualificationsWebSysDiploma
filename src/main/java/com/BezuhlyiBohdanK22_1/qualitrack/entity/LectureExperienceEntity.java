@@ -15,7 +15,7 @@ public class LectureExperienceEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "lecture_experience_id")
-    private Integer lectureExperienceId;
+    private Long lectureExperienceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lecture_id", nullable = false)

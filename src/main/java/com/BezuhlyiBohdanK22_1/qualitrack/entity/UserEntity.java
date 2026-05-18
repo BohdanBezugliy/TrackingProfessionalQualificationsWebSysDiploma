@@ -4,6 +4,7 @@ import com.BezuhlyiBohdanK22_1.qualitrack.enums.UserRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +17,7 @@ public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Integer userId;
+    private Long userId;
 
     @NotBlank
     @Email
@@ -28,7 +29,7 @@ public class UserEntity {
     @Column(name = "password_hash", columnDefinition = "TEXT")
     private String passwordHash;
 
-    @NotBlank
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "user_role")
     private UserRole userRole;

@@ -18,7 +18,7 @@ public class LectureEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "lecture_id")
-    private Integer lectureId;
+    private Long lectureId;
 
     @NotBlank
     @Size(max = 120)

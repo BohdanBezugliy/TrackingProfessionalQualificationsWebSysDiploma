@@ -15,7 +15,7 @@ public class EducationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "education_id")
-    private Integer educationId;
+    private Long educationId;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)

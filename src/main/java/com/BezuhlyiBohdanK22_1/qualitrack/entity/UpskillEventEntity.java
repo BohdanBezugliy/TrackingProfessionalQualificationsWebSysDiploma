@@ -7,9 +7,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "upskill_event")
@@ -19,7 +17,7 @@ public class UpskillEventEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "upskill_event_id")
-    private Integer upskillEventId;
+    private Long upskillEventId;
 
     @NotBlank @Size(max = 255)
     @Column(name = "institution_name")

@@ -16,7 +16,7 @@ public class FacultyEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "faculty_id")
-    private Integer facultyId;
+    private Long facultyId;
 
     @NotBlank(message = "Назва факультету обов'язкова")
     @Column(name = "faculty_name")

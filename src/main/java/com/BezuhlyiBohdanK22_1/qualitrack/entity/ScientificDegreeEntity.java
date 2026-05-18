@@ -17,7 +17,7 @@ public class ScientificDegreeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "lecture_scientific_degree_id")
-    private Integer lectureScientificDegreeId;
+    private Long lectureScientificDegreeId;
 
     @NotBlank(message = "Назва ступеня обов'язкова")
     @Column(name = "scientific_degree_name")

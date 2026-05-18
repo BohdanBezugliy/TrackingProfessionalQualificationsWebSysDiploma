@@ -15,7 +15,7 @@ public class DocumentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "document_id")
-    private Integer documentId;
+    private Long documentId;
 
     @NotBlank
     @Size(max = 255)
