@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Панель Адміністратора - QualiTrack</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .table-hover tbody tr { cursor: pointer; }
+  </style>
+</head>
+<body class="bg-light">
+
+<!-- Навігаційна панель -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+  <div class="container">
+    <a class="navbar-brand" href="#">QualiTrack | Адмін</a>
+    <div class="d-flex">
+      <form th:action="@{/logout}" method="post">
+        <button class="btn btn-outline-light btn-sm" type="submit">Вийти з системи</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+
+  <!-- Сповіщення про успішне створення користувача (якщо є) -->
+  <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <span th:text="${successMessage}">Користувача успішно створено!</span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
+  <!-- Шапка з кнопкою створення -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Керування викладачами</h2>
+    <!-- Кнопка, яка викликає модальне вікно -->
+    <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#createUserModal">
+      + Додати викладача
+    </button>
+  </div>
+
+  <!-- Блок пошуку -->
+  <div class="row justify-content-center mb-5">
+    <div class="col-md-9">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h5 class="card-title text-center mb-4">Пошук</h5>
+
+          <form th:action="@{/admin/lecturers/search}" method="get" class="d-flex gap-2">
+            <select name="searchType" class="form-select w-auto">
+              <option value="name" th:selected="${param.searchType != null and param.searchType[0] == 'name'}">За ПІБ</option>
+              <option value="faculty" th:selected="${param.searchType != null and param.searchType[0] == 'faculty'}">За факультетом</option>
+              <option value="department" th:selected="${param.searchType != null and param.searchType[0] == 'department'}">За кафедрою</option>
+              <option value="email" th:selected="${param.searchType != null and param.searchType[0] == 'email'}">За Email</option>
+            </select>
+
+            <input type="text" name="keyword" class="form-control"
+                   placeholder="Введіть дані для пошуку..."
+                   th:value="${param.keyword}">
+
+            <button type="submit" class="btn btn-primary px-4">Знайти</button>
+            <!-- Кнопка скидання пошуку -->
+            <a th:href="@{/admin/lecturers/search}" class="btn btn-outline-secondary" th:if="${param.keyword != null}">Скинути</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Результати пошуку -->
+  <div class="card shadow-sm" th:if="${lecturers != null}">
+    <div class="card-header bg-white">
+      <h6 class="mb-0 py-1">Список викладачів:</h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+          <tr>
+            <th class="px-4">ПІБ</th>
+            <th>Факультет</th>
+            <th>Кафедра</th>
+            <th>Email</th>
+            <th class="text-end px-4">Дії</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="lecturer : ${lecturers}">
+            <td class="px-4 fw-bold" th:text="${lecturer.fullName}">Іваненко Іван Іванович</td>
+            <td th:text="${lecturer.faculty}">ФІТ</td>
+            <td th:text="${lecturer.department}">Кафедра інженерії</td>
+            <td th:text="${lecturer.email}">ivanenko@example.com</td>
+            <td class="text-end px-4">
+              <a th:href="@{/admin/lecturer/{id}/certificates(id=${lecturer.id})}"
+                 class="btn btn-sm btn-info text-white">
+                Сертифікати
+              </a>
+            </td>
+          </tr>
+
+          <tr th:if="${#lists.isEmpty(lecturers)}">
+            <td colspan="5" class="text-center text-muted py-4">
+              Викладачів не знайдено.
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- МОДАЛЬНЕ ВІКНО: Створення нового викладача -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="createUserModalLabel">Реєстрація нового викладача</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+      </div>
+
+      <!-- Форма створення -->
+      <form th:action="@{/admin/lecturers/create}" method="post">
+        <div class="modal-body">
+
+          <!-- Приховане поле, щоб підкреслити, що це звичайний юзер -->
+          <input type="hidden" name="role" value="ROLE_USER">
+
+          <div class="mb-3">
+            <label for="fullName" class="form-label">ПІБ <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="fullName" name="fullName" required placeholder="Петренко Петро Петрович">
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">Електронна пошта <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" id="email" name="email" required placeholder="name@example.com">
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="faculty" class="form-label">Факультет <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="faculty" name="faculty" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="department" class="form-label">Кафедра <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="department" name="department" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Тимчасовий пароль <span class="text-danger">*</span></label>
+            <input type="password" class="form-control" id="password" name="password" required>
+            <div class="form-text">Користувач зможе змінити пароль після входу.</div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+          <button type="submit" class="btn btn-success">Створити акаунт</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Скрипт Bootstrap (необхідний для роботи модального вікна) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
