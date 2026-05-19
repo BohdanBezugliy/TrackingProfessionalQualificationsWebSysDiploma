@@ -1,11 +1,18 @@
 package com.BezuhlyiBohdanK22_1.qualitrack.service;
 
+import com.BezuhlyiBohdanK22_1.qualitrack.dto.EducationDto;
 import com.BezuhlyiBohdanK22_1.qualitrack.dto.LectureDto;
+import com.BezuhlyiBohdanK22_1.qualitrack.entity.DepartmentEntity;
+import com.BezuhlyiBohdanK22_1.qualitrack.entity.EducationEntity;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.LectureEntity;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.UserEntity;
 import com.BezuhlyiBohdanK22_1.qualitrack.exception.LectureNotFoundException;
+import com.BezuhlyiBohdanK22_1.qualitrack.repository.DepartmentRepository;
+import com.BezuhlyiBohdanK22_1.qualitrack.repository.EducationRepository;
 import com.BezuhlyiBohdanK22_1.qualitrack.repository.LectureRepository;
+import com.BezuhlyiBohdanK22_1.qualitrack.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,37 +23,49 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LectureService implements ILectureService {
     private final LectureRepository lectureRepository;
+    private final UserRepository userRepository;
+    private final DepartmentRepository departmentRepository;
+    private final EducationRepository educationRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public void saveLecturer(LectureDto dto) {
         // 1. Створюємо User
         UserEntity user = new UserEntity();
-        user.setEmail(dto.getEmail());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setRole("LECTURER");
+        user.setEmail(dto.userRegistrationDto().email());
+        user.setPasswordHash(passwordEncoder.encode(dto.userRegistrationDto().password()));
+        user.setUserRole(dto.userRegistrationDto().role());
+        
+        userRepository.save(user);
 
         // 2. Створюємо Lecturer
-        Lecturer lecturer = new Lecturer();
-        lecturer.setFirstName(dto.getFirstName());
-        lecturer.setLastName(dto.getLastName());
-        lecturer.setAcademicDegree(dto.getAcademicDegree());
-        lecturer.setHireDate(dto.getHireDate());
-        lecturer.setUser(user);
+        LectureEntity lecturer = new LectureEntity();
+        lecturer.setFirstName(dto.firstName());
+        lecturer.setLastName(dto.lastName());
+        lecturer.setMiddleName(dto.middleName());
+        lecturer.setAcademicDegree(dto.academicDegree());
+        lecturer.setAcademicRank(dto.academicRank());
+        lecturer.setHireDate(dto.hireDate());
+        lecturer.setUserEntity(user);
 
         // Прив'язка до кафедри
-        Department dept = deptRepo.findById(dto.getDepartmentId()).orElseThrow();
-        lecturer.setDepartment(dept);
+        DepartmentEntity dept = departmentRepository.findById(dto.departmentId())
+                .orElseThrow(() -> new RuntimeException("Department not found"));
+        lecturer.setDepartmentEntity(dept);
+        
+        lectureRepository.save(lecturer);
 
         // 3. Додаємо всі освіти зі списку
-        for (EducationDto eduDto : dto.getEducations()) {
-            Education edu = new Education();
-            edu.setInstitutionName(eduDto.getInstitutionName());
-            edu.setSpecialization(eduDto.getSpecialization());
-            edu.setEndingDate(eduDto.getEndingDate());
-            lecturer.addEducation(edu); // метод додає і встановлює зворотній зв'язок
+        if (dto.educations() != null) {
+            for (EducationDto eduDto : dto.educations()) {
+                EducationEntity edu = new EducationEntity();
+                edu.setInstitutionName(eduDto.institutionName());
+                edu.setSpecialization(eduDto.specialization());
+                edu.setEndingDate(eduDto.endingDate());
+                edu.setLectureEntity(lecturer);
+                educationRepository.save(edu);
+            }
         }
-
-        lecturerRepo.save(lecturer);
     }
 
     @Override
@@ -62,12 +81,12 @@ public class LectureService implements ILectureService {
 
     @Override
     public void save(LectureEntity lectureEntity) {
-
+        lectureRepository.save(lectureEntity);
     }
 
     @Override
     public void delete(LectureEntity lectureEntity) {
-
+        lectureRepository.delete(lectureEntity);
     }
 
     @Override
@@ -92,11 +111,11 @@ public class LectureService implements ILectureService {
 
     @Override
     public BigDecimal countHoursByLectureIdForYear(Long lectureId, Integer year) {
-        return null;
+        return BigDecimal.ZERO;
     }
 
     @Override
     public BigDecimal countCreditsByLectureIdForYear(Long lectureId, Integer year) {
-        return null;
+        return BigDecimal.ZERO;
     }
 }

@@ -1,12 +1,13 @@
 package com.BezuhlyiBohdanK22_1.qualitrack.service;
 
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.LectureEntity;
-
+import com.BezuhlyiBohdanK22_1.qualitrack.dto.LectureDto;
 import java.math.BigDecimal;
 import java.util.List;
 
 public interface ILectureService {
     LectureEntity findByLectureId(Long lectureId);
+    void saveLecturer(LectureDto dto);
     List<LectureEntity> findAll();
     void save(LectureEntity lectureEntity);
     void delete(LectureEntity lectureEntity);

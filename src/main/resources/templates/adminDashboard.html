@@ -1,171 +1,406 @@
 <!DOCTYPE html>
 <html lang="uk" xmlns:th="http://www.thymeleaf.org">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Панель Адміністратора - QualiTrack</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    .table-hover tbody tr { cursor: pointer; }
+    .table-hover tbody tr {
+      cursor: pointer;
+    }
+
+    .education-item {
+      border: 1px solid #dee2e6;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .remove-education-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
   </style>
 </head>
+
 <body class="bg-light">
 
-<!-- Навігаційна панель -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-  <div class="container">
-    <a class="navbar-brand" href="#">QualiTrack | Адмін</a>
-    <div class="d-flex">
-      <form th:action="@{/logout}" method="post">
-        <button class="btn btn-outline-light btn-sm" type="submit">Вийти з системи</button>
-      </form>
+  <!-- Навігаційна панель -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="#">QualiTrack | Адмін</a>
+      <div class="d-flex">
+        <form th:action="@{/logout}" method="post">
+          <button class="btn btn-outline-light btn-sm" type="submit">Вийти з системи</button>
+        </form>
+      </div>
     </div>
-  </div>
-</nav>
+  </nav>
 
-<div class="container mt-5">
+  <div class="container mt-5">
 
-  <!-- Сповіщення про успішне створення користувача (якщо є) -->
-  <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-    <span th:text="${successMessage}">Користувача успішно створено!</span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  </div>
+    <!-- Сповіщення про успішне створення (якщо є) -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+      <span th:text="${successMessage}">Користувача успішно створено!</span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 
-  <!-- Шапка з кнопкою створення -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h4 mb-0">Керування викладачами</h2>
-    <!-- Кнопка, яка викликає модальне вікно -->
-    <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#createUserModal">
-      + Додати викладача
-    </button>
-  </div>
+    <!-- Шапка з кнопками створення -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="h4 mb-0">Керування системою</h2>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-primary shadow-sm" data-bs-toggle="modal"
+          data-bs-target="#createFacultyModal">
+          + Факультет
+        </button>
+        <button type="button" class="btn btn-outline-primary shadow-sm" data-bs-toggle="modal"
+          data-bs-target="#createDepartmentModal">
+          + Кафедра
+        </button>
+        <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal"
+          data-bs-target="#createUserModal">
+          + Додати викладача
+        </button>
+      </div>
+    </div>
 
-  <!-- Блок пошуку -->
-  <div class="row justify-content-center mb-5">
-    <div class="col-md-9">
-      <div class="card shadow-sm">
-        <div class="card-body p-4">
-          <h5 class="card-title text-center mb-4">Пошук</h5>
+    <!-- Блок пошуку -->
+    <div class="row justify-content-center mb-5">
+      <div class="col-md-9">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <h5 class="card-title text-center mb-4">Пошук</h5>
 
-          <form th:action="@{/admin/lecturers/search}" method="get" class="d-flex gap-2">
-            <select name="searchType" class="form-select w-auto">
-              <option value="name" th:selected="${param.searchType != null and param.searchType[0] == 'name'}">За ПІБ</option>
-              <option value="faculty" th:selected="${param.searchType != null and param.searchType[0] == 'faculty'}">За факультетом</option>
-              <option value="department" th:selected="${param.searchType != null and param.searchType[0] == 'department'}">За кафедрою</option>
-              <option value="email" th:selected="${param.searchType != null and param.searchType[0] == 'email'}">За Email</option>
-            </select>
+            <form th:action="@{/admin/lecturers/search}" method="get" class="d-flex gap-2">
+              <select name="searchType" class="form-select w-auto">
+                <option value="name" th:selected="${param.searchType != null and param.searchType[0] == 'name'}">За ПІБ
+                </option>
+                <option value="faculty" th:selected="${param.searchType != null and param.searchType[0] == 'faculty'}">
+                  За факультетом</option>
+                <option value="department"
+                  th:selected="${param.searchType != null and param.searchType[0] == 'department'}">За кафедрою</option>
+                <option value="email" th:selected="${param.searchType != null and param.searchType[0] == 'email'}">За
+                  Email</option>
+              </select>
 
-            <input type="text" name="keyword" class="form-control"
-                   placeholder="Введіть дані для пошуку..."
-                   th:value="${param.keyword}">
+              <input type="text" name="keyword" class="form-control" placeholder="Введіть дані для пошуку..."
+                th:value="${param.keyword}">
 
-            <button type="submit" class="btn btn-primary px-4">Знайти</button>
-            <!-- Кнопка скидання пошуку -->
-            <a th:href="@{/admin/lecturers/search}" class="btn btn-outline-secondary" th:if="${param.keyword != null}">Скинути</a>
-          </form>
+              <button type="submit" class="btn btn-primary px-4">Знайти</button>
+              <a th:href="@{/admin/lecturers/search}" class="btn btn-outline-secondary"
+                th:if="${param.keyword != null}">Скинути</a>
+            </form>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Результати пошуку -->
-  <div class="card shadow-sm" th:if="${lecturers != null}">
-    <div class="card-header bg-white">
-      <h6 class="mb-0 py-1">Список викладачів:</h6>
-    </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-          <tr>
-            <th class="px-4">ПІБ</th>
-            <th>Факультет</th>
-            <th>Кафедра</th>
-            <th>Email</th>
-            <th class="text-end px-4">Дії</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr th:each="lecturer : ${lecturers}">
-            <td class="px-4 fw-bold" th:text="${lecturer.fullName}">Іваненко Іван Іванович</td>
-            <td th:text="${lecturer.faculty}">ФІТ</td>
-            <td th:text="${lecturer.department}">Кафедра інженерії</td>
-            <td th:text="${lecturer.email}">ivanenko@example.com</td>
-            <td class="text-end px-4">
-              <a th:href="@{/admin/lecturer/{id}/certificates(id=${lecturer.id})}"
-                 class="btn btn-sm btn-info text-white">
-                Сертифікати
-              </a>
-            </td>
-          </tr>
+    <!-- Результати пошуку -->
+    <div class="card shadow-sm" th:if="${lecturers != null}">
+      <div class="card-header bg-white">
+        <h6 class="mb-0 py-1">Список викладачів:</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="px-4">Прізвище та Ім'я</th>
+                <th>Факультет</th>
+                <th>Кафедра</th>
+                <th>Email</th>
+                <th class="text-end px-4">Дії</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="lecturer : ${lecturers}">
+                <td class="px-4 fw-bold" th:text="${lecturer.lastName + ' ' + lecturer.firstName}">Іваненко Іван</td>
+                <td
+                  th:text="${lecturer.departmentEntity != null ? lecturer.departmentEntity.facultyEntity.facultyName : '-'}">
+                  ФІТ</td>
+                <td th:text="${lecturer.departmentEntity != null ? lecturer.departmentEntity.departmentName : '-'}">
+                  Кафедра інженерії</td>
+                <td th:text="${lecturer.userEntity.email}">ivanenko@example.com</td>
+                <td class="text-end px-4">
+                  <a th:href="@{/admin/lecturer/{id}/certificates(id=${lecturer.lectureId})}"
+                    class="btn btn-sm btn-info text-white">
+                    Сертифікати
+                  </a>
+                </td>
+              </tr>
 
-          <tr th:if="${#lists.isEmpty(lecturers)}">
-            <td colspan="5" class="text-center text-muted py-4">
-              Викладачів не знайдено.
-            </td>
-          </tr>
-          </tbody>
-        </table>
+              <tr th:if="${#lists.isEmpty(lecturers)}">
+                <td colspan="5" class="text-center text-muted py-4">
+                  Викладачів не знайдено.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
+
   </div>
 
-</div>
-
-<!-- МОДАЛЬНЕ ВІКНО: Створення нового викладача -->
-<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header bg-light">
-        <h5 class="modal-title" id="createUserModalLabel">Реєстрація нового викладача</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
-      </div>
-
-      <!-- Форма створення -->
-      <form th:action="@{/admin/lecturers/create}" method="post">
-        <div class="modal-body">
-
-          <!-- Приховане поле, щоб підкреслити, що це звичайний юзер -->
-          <input type="hidden" name="role" value="ROLE_USER">
-
-          <div class="mb-3">
-            <label for="fullName" class="form-label">ПІБ <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="fullName" name="fullName" required placeholder="Петренко Петро Петрович">
-          </div>
-
-          <div class="mb-3">
-            <label for="email" class="form-label">Електронна пошта <span class="text-danger">*</span></label>
-            <input type="email" class="form-control" id="email" name="email" required placeholder="name@example.com">
-          </div>
-
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="faculty" class="form-label">Факультет <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="faculty" name="faculty" required>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="department" class="form-label">Кафедра <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="department" name="department" required>
+  <!-- МОДАЛЬНЕ ВІКНО: Створення факультету -->
+  <div class="modal fade" id="createFacultyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title">Створення факультету</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+        </div>
+        <form th:action="@{/admin/faculty/create}" method="post">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Назва факультету <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="facultyName" required>
             </div>
           </div>
-
-          <div class="mb-3">
-            <label for="password" class="form-label">Тимчасовий пароль <span class="text-danger">*</span></label>
-            <input type="password" class="form-control" id="password" name="password" required>
-            <div class="form-text">Користувач зможе змінити пароль після входу.</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+            <button type="submit" class="btn btn-primary">Зберегти</button>
           </div>
-
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
-          <button type="submit" class="btn btn-success">Створити акаунт</button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Скрипт Bootstrap (необхідний для роботи модального вікна) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- МОДАЛЬНЕ ВІКНО: Створення кафедри -->
+  <div class="modal fade" id="createDepartmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title">Створення кафедри</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+        </div>
+        <form th:action="@{/admin/department/create}" method="post">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Факультет <span class="text-danger">*</span></label>
+              <select class="form-select" name="facultyId" required>
+                <option value="">Оберіть факультет...</option>
+                <option th:each="fac : ${faculties}" th:value="${fac.facultyId}" th:text="${fac.facultyName}"></option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Назва кафедри <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="departmentName" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+            <button type="submit" class="btn btn-primary">Зберегти</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- МОДАЛЬНЕ ВІКНО: Створення нового викладача -->
+  <div class="modal fade" id="createUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title">Реєстрація нового викладача</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+        </div>
+
+        <!-- Форма створення -->
+        <form th:action="@{/admin/lecturers/create}" method="post">
+          <div class="modal-body">
+
+            <!-- Приховане поле, щоб підкреслити, що це звичайний юзер -->
+            <input type="hidden" name="userRegistrationDto.role" value="USER">
+
+            <h6 class="text-primary mt-2">1. Дані облікового запису</h6>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Електронна пошта <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" name="userRegistrationDto.email" required
+                  placeholder="name@example.com">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Пароль <span class="text-danger">*</span></label>
+                <input type="password" class="form-control" name="userRegistrationDto.password" required>
+              </div>
+            </div>
+
+            <hr />
+            <h6 class="text-primary">2. Особиста інформація викладача</h6>
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Прізвище <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="lastName" required>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Ім'я <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="firstName" required>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">По-батькові</label>
+                <input type="text" class="form-control" name="middleName">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Науковий ступінь</label>
+                <input type="text" class="form-control" name="academicDegree">
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Вчене звання</label>
+                <input type="text" class="form-control" name="academicRank">
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Дата найму <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" name="hireDate" required>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Факультет <span class="text-danger">*</span></label>
+                <select class="form-select" name="facultyId" id="facultySelect" required>
+                  <option value="">Оберіть факультет...</option>
+                  <option th:each="fac : ${faculties}" th:value="${fac.facultyId}" th:text="${fac.facultyName}">
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Кафедра <span class="text-danger">*</span></label>
+                <select class="form-select" name="departmentId" id="departmentSelect" required>
+                  <option value="">Оберіть кафедру...</option>
+                  <option th:each="dep : ${departments}" th:value="${dep.departmentId}"
+                    th:data-faculty-id="${dep.facultyEntity.facultyId}" th:text="${dep.departmentName}"></option>
+                </select>
+              </div>
+            </div>
+
+            <hr />
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="text-primary mb-0">3. Інформація про освіту</h6>
+              <button type="button" class="btn btn-sm btn-outline-success" id="addEducationBtn">+ Додати ще
+                освіту</button>
+            </div>
+
+            <div id="educationContainer">
+              <div class="education-item">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-education-btn"
+                  style="display: none;">Видалити</button>
+                <div class="row">
+                  <div class="col-md-12 mb-2">
+                    <label class="form-label">Навчальний заклад <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="educations[0].institutionName" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label">Спеціальність <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="educations[0].specialization" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label">Дата закінчення <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" name="educations[0].endingDate" required>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+            <button type="submit" class="btn btn-success">Створити викладача</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Логіка для зв'язку факультет-кафедра
+    document.getElementById('facultySelect').addEventListener('change', function () {
+      const facultyId = this.value;
+      const departmentSelect = document.getElementById('departmentSelect');
+      const options = departmentSelect.options;
+
+      departmentSelect.value = ""; // Скинути вибір
+
+      for (let i = 1; i < options.length; i++) {
+        const option = options[i];
+        if (!facultyId || option.getAttribute('data-faculty-id') === facultyId) {
+          option.style.display = '';
+        } else {
+          option.style.display = 'none';
+        }
+      }
+    });
+
+    // Логіка для додавання/видалення блоків освіти
+    let educationCount = 1;
+    const educationContainer = document.getElementById('educationContainer');
+    const addEducationBtn = document.getElementById('addEducationBtn');
+
+    addEducationBtn.addEventListener('click', function () {
+      const newItem = document.createElement('div');
+      newItem.className = 'education-item mt-2';
+      newItem.innerHTML = `
+      <button type="button" class="btn btn-sm btn-outline-danger remove-education-btn">Видалити</button>
+      <div class="row">
+        <div class="col-md-12 mb-2">
+          <label class="form-label">Навчальний заклад <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="educations[${educationCount}].institutionName" required>
+        </div>
+        <div class="col-md-6 mb-2">
+          <label class="form-label">Спеціальність <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="educations[${educationCount}].specialization" required>
+        </div>
+        <div class="col-md-6 mb-2">
+          <label class="form-label">Дата закінчення <span class="text-danger">*</span></label>
+          <input type="date" class="form-control" name="educations[${educationCount}].endingDate" required>
+        </div>
+      </div>
+    `;
+      educationContainer.appendChild(newItem);
+      educationCount++;
+
+      // Додати обробник для кнопки видалення
+      newItem.querySelector('.remove-education-btn').addEventListener('click', function () {
+        educationContainer.removeChild(newItem);
+        updateEducationIndexes();
+      });
+
+      // Показати кнопку видалення на першому елементі, якщо їх більше одного
+      if (educationContainer.children.length > 1) {
+        educationContainer.children[0].querySelector('.remove-education-btn').style.display = 'block';
+      }
+    });
+
+    // Додати обробник для першої кнопки видалення (яка спочатку прихована)
+    document.querySelector('.remove-education-btn').addEventListener('click', function () {
+      if (educationContainer.children.length > 1) {
+        educationContainer.removeChild(this.closest('.education-item'));
+        updateEducationIndexes();
+        if (educationContainer.children.length === 1) {
+          educationContainer.children[0].querySelector('.remove-education-btn').style.display = 'none';
+        }
+      }
+    });
+
+    function updateEducationIndexes() {
+      const items = educationContainer.querySelectorAll('.education-item');
+      items.forEach((item, index) => {
+        item.querySelector('input[name$=".institutionName"]').name = `educations[${index}].institutionName`;
+        item.querySelector('input[name$=".specialization"]').name = `educations[${index}].specialization`;
+        item.querySelector('input[name$=".endingDate"]').name = `educations[${index}].endingDate`;
+      });
+      educationCount = items.length;
+    }
+  </script>
 </body>
+
 </html>
