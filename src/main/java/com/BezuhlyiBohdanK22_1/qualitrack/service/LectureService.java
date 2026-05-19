@@ -90,6 +90,27 @@ public class LectureService implements ILectureService {
     }
 
     @Override
+    @Transactional
+    public void deleteLecturerById(Long lectureId) {
+        LectureEntity lecturer = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new LectureNotFoundException("Lecture not found!"));
+        
+        // 1. Delete educations
+        educationRepository.deleteByLectureEntity(lecturer);
+        
+        // 2. Remember UserEntity
+        UserEntity user = lecturer.getUserEntity();
+        
+        // 3. Delete lecturer
+        lectureRepository.delete(lecturer);
+        
+        // 4. Delete user
+        if (user != null) {
+            userRepository.delete(user);
+        }
+    }
+
+    @Override
     public List<LectureEntity> findAllByLectureName(String lectureName) {
         return List.of();
     }

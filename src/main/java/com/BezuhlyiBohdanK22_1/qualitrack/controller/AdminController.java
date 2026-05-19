@@ -58,4 +58,12 @@ public class AdminController {
         redirectAttributes.addFlashAttribute("successMessage", "Викладача успішно створено!");
         return "redirect:/admin/dashboard";
     }
+
+    @PostMapping("/lecturers/delete/{id}")
+    public String deleteLecturer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        logger.info("Delete Lecturer with ID: {}", id);
+        lectureService.deleteLecturerById(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Викладача успішно видалено!");
+        return "redirect:/admin/dashboard";
+    }
 }

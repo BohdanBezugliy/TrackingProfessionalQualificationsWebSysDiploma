@@ -130,6 +130,9 @@
                     class="btn btn-sm btn-info text-white">
                     Сертифікати
                   </a>
+                  <form th:action="@{/admin/lecturers/delete/{id}(id=${lecturer.lectureId})}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Ви впевнені, що хочете видалити цього викладача?');">Видалити</button>
+                  </form>
                 </td>
               </tr>
 

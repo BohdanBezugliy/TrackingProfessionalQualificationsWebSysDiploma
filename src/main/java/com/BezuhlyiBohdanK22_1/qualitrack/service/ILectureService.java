@@ -11,6 +11,7 @@ public interface ILectureService {
     List<LectureEntity> findAll();
     void save(LectureEntity lectureEntity);
     void delete(LectureEntity lectureEntity);
+    void deleteLecturerById(Long lectureId);
     List<LectureEntity> findAllByLectureName(String lectureName);
     List<LectureEntity> findAllByFacultyName(String facultyName);
     List<LectureEntity> findAllByDepartmentName(String departmentName);
