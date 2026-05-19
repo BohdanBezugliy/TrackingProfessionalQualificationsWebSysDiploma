@@ -39,9 +39,13 @@ public class LectureEntity {
     @PastOrPresent
     private LocalDate hireDate;
 
-    @NotBlank
-    @Size(max = 255)
-    private String position;
+    @Size(max = 150)
+    @Column(name = "academic_degree")
+    private String academicDegree;
+
+    @Size(max = 150)
+    @Column(name = "academic_rank")
+    private String academicRank;
 
     @NotNull
     @OneToOne

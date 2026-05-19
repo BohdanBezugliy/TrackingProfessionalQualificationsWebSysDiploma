@@ -14,11 +14,11 @@ public class AdminController {
         logger.info("Dashboard Admin");
         return "adminDashboard";
     }
-//    @PostMapping("/lecturers/create")
-//    public void createLecturer(@RequestParam String fullName,
-//                               @RequestParam String email,
-//                               @RequestParam String faculty) {
-//        logger.info("Create Lecturer");
-//
-//    }
+    @PostMapping("/lecturers/create")
+    public void createLecturer(@RequestParam String fullName,
+                               @RequestParam String email,
+                               @RequestParam String faculty) {
+        logger.info("Create Lecturer");
+
+    }
 }
