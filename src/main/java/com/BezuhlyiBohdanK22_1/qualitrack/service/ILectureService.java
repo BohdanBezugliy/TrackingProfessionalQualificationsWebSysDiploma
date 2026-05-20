@@ -12,7 +12,7 @@ public interface ILectureService {
     void save(LectureEntity lectureEntity);
     void delete(LectureEntity lectureEntity);
     void deleteLecturerById(Long lectureId);
-    void updateProfile(Long lectureId, LectureDto dto);
+    void updateProfile(Long lectureId, com.BezuhlyiBohdanK22_1.qualitrack.dto.LecturerUpdateDto dto);
     void updatePassword(Long lectureId, String newPassword);
     List<LectureEntity> findAllByLectureName(String lectureName);
     List<LectureEntity> findAllByFacultyName(String facultyName);

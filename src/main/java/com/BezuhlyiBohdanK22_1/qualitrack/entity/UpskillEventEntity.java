@@ -68,4 +68,18 @@ public class UpskillEventEntity {
     private boolean isDateRangeValid() {
         return dateEnd.isAfter(dateBegin);
     }
+
+    @Column(name = "document_number")
+    @Size(max = 100)
+    private String documentNumber;
+
+    @PrePersist
+    @PreUpdate
+    public void calculateHoursAndCredits() {
+        if (hours != null && (ectsCredits == null || ectsCredits.compareTo(BigDecimal.ZERO) == 0)) {
+            ectsCredits = BigDecimal.valueOf(hours).divide(BigDecimal.valueOf(30), 2, java.math.RoundingMode.HALF_UP);
+        } else if (ectsCredits != null && (hours == null || hours == 0)) {
+            hours = ectsCredits.multiply(BigDecimal.valueOf(30)).intValue();
+        }
+    }
 }

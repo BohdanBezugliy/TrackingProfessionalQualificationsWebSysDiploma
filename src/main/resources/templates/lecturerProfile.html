@@ -23,11 +23,16 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
+    <!-- Шапка з кнопками -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <h2 class="h4 mb-0" th:text="${'Профіль викладача: ' + lecturer.lastName + ' ' + lecturer.firstName}"></h2>
-        <form th:action="@{/admin/lecturer/{id}/delete(id=${lecturer.lectureId})}" method="post" class="mb-0">
-            <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Ви впевнені, що хочете видалити цього викладача?');">Видалити викладача</button>
-        </form>
+        <div class="d-flex flex-wrap gap-2">
+            <a th:href="@{/admin/lecturer/{id}/certificates(id=${lecturer.lectureId})}" class="btn btn-info text-white shadow-sm">Сертифікати</a>
+            <a th:href="@{/admin/lecturer/{id}/profile/edit(id=${lecturer.lectureId})}" class="btn btn-primary shadow-sm">Редагувати профіль</a>
+            <form th:action="@{/admin/lecturer/{id}/delete(id=${lecturer.lectureId})}" method="post" class="mb-0">
+                <button type="submit" class="btn btn-danger shadow-sm" onclick="return confirm('Ви впевнені, що хочете видалити цього викладача?');">Видалити</button>
+            </form>
+        </div>
     </div>
 
     <div class="row">
@@ -35,56 +40,76 @@
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">Основні дані</h5>
+                    <h5 class="mb-0">Основна інформація</h5>
                 </div>
                 <div class="card-body">
-                    <form th:action="@{/admin/lecturer/{id}/profile/update(id=${lecturer.lectureId})}" method="post">
-                        <div class="mb-3">
-                            <label class="form-label">Прізвище <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="lastName" th:value="${lecturer.lastName}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Ім'я <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="firstName" th:value="${lecturer.firstName}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">По батькові</label>
-                            <input type="text" class="form-control" name="middleName" th:value="${lecturer.middleName}">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Кафедра</label>
-                            <select class="form-select" name="departmentId" required>
-                                <option th:each="dep : ${departments}" th:value="${dep.departmentId}" th:text="${dep.departmentName}" th:selected="${dep.departmentId == lecturer.departmentEntity.departmentId}"></option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Науковий ступінь</label>
-                            <input type="text" class="form-control" name="academicDegree" th:value="${lecturer.academicDegree}">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Вчене звання</label>
-                            <input type="text" class="form-control" name="academicRank" th:value="${lecturer.academicRank}">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Зберегти зміни</button>
-                    </form>
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="ps-0" style="width: 40%;">Прізвище</th>
+                                <td th:text="${lecturer.lastName}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Ім'я</th>
+                                <td th:text="${lecturer.firstName}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">По батькові</th>
+                                <td th:text="${lecturer.middleName != null ? lecturer.middleName : '-'}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Email</th>
+                                <td th:text="${lecturer.userEntity.email}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Факультет</th>
+                                <td th:text="${lecturer.departmentEntity != null ? lecturer.departmentEntity.facultyEntity.facultyName : '-'}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Кафедра</th>
+                                <td th:text="${lecturer.departmentEntity != null ? lecturer.departmentEntity.departmentName : '-'}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Науковий ступінь</th>
+                                <td th:text="${lecturer.academicDegree != null && !lecturer.academicDegree.isEmpty() ? lecturer.academicDegree : '-'}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Вчене звання</th>
+                                <td th:text="${lecturer.academicRank != null && !lecturer.academicRank.isEmpty() ? lecturer.academicRank : '-'}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Дата початку роботи</th>
+                                <td th:text="${lecturer.hireDate}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Накопичено за підвищення кваліфікації</th>
+                                <td th:text="${lecturer.getTotalHours() + ' год / ' + lecturer.getTotalEctsCredits() + ' ЄКТС'}">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <!-- Зміна паролю -->
+        <!-- Освіта -->
         <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm h-100">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">Зміна паролю</h5>
+                    <h5 class="mb-0">Освіта</h5>
                 </div>
-                <div class="card-body">
-                    <form th:action="@{/admin/lecturer/{id}/profile/password(id=${lecturer.lectureId})}" method="post">
-                        <div class="mb-3">
-                            <label class="form-label">Новий пароль <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" name="newPassword" required minlength="6">
-                        </div>
-                        <button type="submit" class="btn btn-warning">Змінити пароль</button>
-                    </form>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush" th:if="${lecturer.educations != null and !lecturer.educations.isEmpty()}">
+                        <li class="list-group-item p-3" th:each="edu : ${lecturer.educations}">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="mb-0 fw-bold" th:text="${edu.institutionName}">Університет</h6>
+                                <span class="badge bg-secondary" th:text="${edu.endingDate}">2014-06-30</span>
+                            </div>
+                            <p class="mb-0 text-muted" th:text="${'Спеціальність: ' + edu.specialization}">Спеціальність</p>
+                        </li>
+                    </ul>
+                    <div class="p-4 text-center text-muted" th:if="${lecturer.educations == null or lecturer.educations.isEmpty()}">
+                        Дані про освіту відсутні
+                    </div>
                 </div>
             </div>
         </div>

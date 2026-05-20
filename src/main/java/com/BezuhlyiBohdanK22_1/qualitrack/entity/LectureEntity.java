@@ -60,4 +60,25 @@ public class LectureEntity {
 
     @OneToMany(mappedBy = "lectureEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EducationEntity> educations;
+
+    @OneToMany(mappedBy = "lectureEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UpskillEventEntity> upskillEvents;
+
+    @Transient
+    public Integer getTotalHours() {
+        if (upskillEvents == null) return 0;
+        return upskillEvents.stream()
+                .filter(e -> e.getHours() != null)
+                .mapToInt(UpskillEventEntity::getHours)
+                .sum();
+    }
+
+    @Transient
+    public java.math.BigDecimal getTotalEctsCredits() {
+        if (upskillEvents == null) return java.math.BigDecimal.ZERO;
+        return upskillEvents.stream()
+                .filter(e -> e.getEctsCredits() != null)
+                .map(UpskillEventEntity::getEctsCredits)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+    }
 }

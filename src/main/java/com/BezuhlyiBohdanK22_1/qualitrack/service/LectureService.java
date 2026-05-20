@@ -2,6 +2,7 @@ package com.BezuhlyiBohdanK22_1.qualitrack.service;
 
 import com.BezuhlyiBohdanK22_1.qualitrack.dto.EducationDto;
 import com.BezuhlyiBohdanK22_1.qualitrack.dto.LectureDto;
+import com.BezuhlyiBohdanK22_1.qualitrack.dto.LecturerUpdateDto;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.DepartmentEntity;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.EducationEntity;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.LectureEntity;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -118,20 +120,56 @@ public class LectureService implements ILectureService {
 
     @Override
     @Transactional
-    public void updateProfile(Long lectureId, LectureDto dto) {
+    public void updateProfile(Long lectureId, LecturerUpdateDto dto) {
         LectureEntity lecturer = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new LectureNotFoundException("Lecture not found!"));
         
+        // Update user email if changed
+        UserEntity user = lecturer.getUserEntity();
+        if (user != null && dto.email() != null && !dto.email().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(dto.email())) {
+                throw new UserAlreadyExistsException("Користувач з таким email вже існує!");
+            }
+            user.setEmail(dto.email());
+            userRepository.save(user);
+        }
+
         lecturer.setFirstName(dto.firstName());
         lecturer.setLastName(dto.lastName());
         lecturer.setMiddleName(dto.middleName());
         lecturer.setAcademicDegree(dto.academicDegree());
         lecturer.setAcademicRank(dto.academicRank());
         
+        if (dto.hireDate() != null) {
+            lecturer.setHireDate(dto.hireDate());
+        }
+        
         if (dto.departmentId() != null) {
             DepartmentEntity dept = departmentRepository.findById(dto.departmentId())
                     .orElseThrow(() -> new RuntimeException("Department not found"));
             lecturer.setDepartmentEntity(dept);
+        }
+        
+        // Handle education updates
+        if (dto.educations() != null) {
+            // Remove existing educations
+            if (lecturer.getEducations() != null) {
+                lecturer.getEducations().clear();
+            } else {
+                lecturer.setEducations(new ArrayList<>());
+            }
+            
+            // Add new educations
+            for (EducationDto ed : dto.educations()) {
+                if (ed.institutionName() != null && !ed.institutionName().trim().isEmpty()) {
+                    EducationEntity eduEntity = new EducationEntity();
+                    eduEntity.setInstitutionName(ed.institutionName());
+                    eduEntity.setSpecialization(ed.specialization());
+                    eduEntity.setEndingDate(ed.endingDate());
+                    eduEntity.setLectureEntity(lecturer);
+                    lecturer.getEducations().add(eduEntity);
+                }
+            }
         }
         
         lectureRepository.save(lecturer);

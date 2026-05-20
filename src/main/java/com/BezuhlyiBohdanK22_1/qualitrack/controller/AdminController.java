@@ -25,6 +25,7 @@ public class AdminController {
     private final IDepartmentService departmentService;
 
     @GetMapping("/dashboard")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public String dashboard(@RequestParam(required = false) String keyword,
                             @RequestParam(required = false) Long facultyId,
                             @RequestParam(required = false) Long departmentId,

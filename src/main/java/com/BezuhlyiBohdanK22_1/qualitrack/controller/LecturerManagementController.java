@@ -1,6 +1,7 @@
 package com.BezuhlyiBohdanK22_1.qualitrack.controller;
 
 import com.BezuhlyiBohdanK22_1.qualitrack.dto.LectureDto;
+import com.BezuhlyiBohdanK22_1.qualitrack.dto.LecturerUpdateDto;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.*;
 import com.BezuhlyiBohdanK22_1.qualitrack.repository.DepartmentRepository;
 import com.BezuhlyiBohdanK22_1.qualitrack.repository.DisciplineRepository;
@@ -41,17 +42,31 @@ public class LecturerManagementController {
     );
 
     @GetMapping("/profile")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public String profile(@PathVariable Long id, Model model) {
         LectureEntity lecturer = lectureService.findByLectureId(id);
         model.addAttribute("lecturer", lecturer);
-        model.addAttribute("departments", departmentRepository.findAll());
         return "lecturerProfile";
     }
 
+    @GetMapping("/profile/edit")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public String editProfile(@PathVariable Long id, Model model) {
+        LectureEntity lecturer = lectureService.findByLectureId(id);
+        model.addAttribute("lecturer", lecturer);
+        model.addAttribute("departments", departmentRepository.findAll());
+        return "editLecturerProfile";
+    }
+
     @PostMapping("/profile/update")
-    public String updateProfile(@PathVariable Long id, @ModelAttribute LectureDto dto, RedirectAttributes redirectAttributes) {
-        lectureService.updateProfile(id, dto);
-        redirectAttributes.addFlashAttribute("successMessage", "Профіль успішно оновлено!");
+    public String updateProfile(@PathVariable Long id, @ModelAttribute LecturerUpdateDto dto, RedirectAttributes redirectAttributes) {
+        try {
+            lectureService.updateProfile(id, dto);
+            redirectAttributes.addFlashAttribute("successMessage", "Профіль успішно оновлено!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/admin/lecturer/" + id + "/profile/edit";
+        }
         return "redirect:/admin/lecturer/" + id + "/profile";
     }
 
@@ -70,9 +85,18 @@ public class LecturerManagementController {
     }
 
     @GetMapping("/certificates")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public String certificates(@PathVariable Long id, Model model) {
         LectureEntity lecturer = lectureService.findByLectureId(id);
         List<UpskillEventEntity> events = upskillEventRepository.findAllByLectureEntity_LectureId(id);
+        
+        // Force initialization inside transaction to prevent Postgres Large Object exception
+        events.forEach(e -> {
+            if (e.getDocumentEntity() != null) {
+                e.getDocumentEntity().getDocumentType();
+            }
+        });
+
         model.addAttribute("lecturer", lecturer);
         model.addAttribute("events", events);
         model.addAttribute("allDisciplines", disciplineRepository.findAll());
@@ -83,6 +107,7 @@ public class LecturerManagementController {
     @org.springframework.transaction.annotation.Transactional
     public String uploadCertificate(@PathVariable Long id, 
                                     @RequestParam("file") MultipartFile file,
+                                    @RequestParam("documentType") String documentType,
                                     @RequestParam(value = "disciplineIds", required = false) List<Long> disciplineIds,
                                     @ModelAttribute UpskillEventEntity event,
                                     RedirectAttributes redirectAttributes) throws IOException {
@@ -103,7 +128,7 @@ public class LecturerManagementController {
         doc.setFileName(file.getOriginalFilename());
         doc.setContentType(file.getContentType());
         doc.setFileSize(file.getSize());
-        doc.setDocumentType("CERTIFICATE");
+        doc.setDocumentType(documentType);
         doc.setFileData(file.getBytes());
         documentRepository.save(doc);
 
@@ -117,14 +142,14 @@ public class LecturerManagementController {
 
         upskillEventRepository.save(event);
 
-        redirectAttributes.addFlashAttribute("successMessage", "Сертифікат успішно завантажено!");
+        redirectAttributes.addFlashAttribute("successMessage", "Документ успішно додано!");
         return "redirect:/admin/lecturer/" + id + "/certificates";
     }
 
     @PostMapping("/certificates/delete/{eventId}")
     public String deleteCertificate(@PathVariable Long id, @PathVariable Long eventId, RedirectAttributes redirectAttributes) {
         upskillEventRepository.deleteById(eventId);
-        redirectAttributes.addFlashAttribute("successMessage", "Сертифікат успішно видалено!");
+        redirectAttributes.addFlashAttribute("successMessage", "Документ успішно видалено!");
         return "redirect:/admin/lecturer/" + id + "/certificates";
     }
 

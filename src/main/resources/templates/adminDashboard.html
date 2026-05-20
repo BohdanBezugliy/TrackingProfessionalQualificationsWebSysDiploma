@@ -129,28 +129,29 @@
                 <th>Факультет</th>
                 <th>Кафедра</th>
                 <th>Email</th>
-                <th class="text-end px-4">Дії</th>
+                <th>Години / ЄКТС</th>
               </tr>
             </thead>
             <tbody>
-              <tr th:each="lecturer : ${lecturers}">
-                <td class="px-4 fw-bold" th:text="${lecturer.lastName + ' ' + lecturer.firstName}">Іваненко Іван</td>
-                <td
-                  th:text="${lecturer.departmentEntity != null ? lecturer.departmentEntity.facultyEntity.facultyName : '-'}">
-                  ФІТ</td>
-                <td th:text="${lecturer.departmentEntity != null ? lecturer.departmentEntity.departmentName : '-'}">
-                  Кафедра інженерії</td>
-                <td th:text="${lecturer.userEntity.email}">ivanenko@example.com</td>
-                <td class="text-end px-4">
-                  <a th:href="@{/admin/lecturer/{id}/profile(id=${lecturer.lectureId})}"
-                    class="btn btn-sm btn-primary text-white">
-                    Профіль
-                  </a>
-                  <a th:href="@{/admin/lecturer/{id}/certificates(id=${lecturer.lectureId})}"
-                    class="btn btn-sm btn-info text-white">
-                    Сертифікати
-                  </a>
+              <tr th:each="lecturer : ${lecturers}"
+                  th:onclick="|window.location.href='@{/admin/lecturer/{id}/profile(id=${lecturer.lectureId})}'|"
+                  style="cursor: pointer;"
+                  class="hover-row">
+                <td class="px-4 fw-bold" th:text="${lecturer.lastName + ' ' + lecturer.firstName}">
+                  Іваненко Іван
                 </td>
+
+                <td th:text="${lecturer.departmentEntity != null ? lecturer.departmentEntity.facultyEntity.facultyName : '-'}">
+                  ФІТ
+                </td>
+
+                <td th:text="${lecturer.departmentEntity != null ? lecturer.departmentEntity.departmentName : '-'}">
+                  Кафедра інженерії
+                </td>
+
+                <td th:text="${lecturer.userEntity.email}">ivanenko@example.com</td>
+
+                <td class="pe-4" th:text="${lecturer.getTotalHours() + ' год / ' + lecturer.getTotalEctsCredits() + ' ЄКТС'}">0 год / 0 ЄКТС</td>
               </tr>
 
               <tr th:if="${#lists.isEmpty(lecturers)}">
