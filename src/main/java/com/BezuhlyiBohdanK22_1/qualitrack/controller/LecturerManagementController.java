@@ -12,6 +12,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
@@ -66,58 +69,21 @@ public class LecturerManagementController {
         return "redirect:/admin/dashboard";
     }
 
-    @GetMapping("/disciplines")
-    public String disciplines(@PathVariable Long id, Model model) {
-        LectureEntity lecturer = lectureService.findByLectureId(id);
-        model.addAttribute("lecturer", lecturer);
-        model.addAttribute("allDisciplines", disciplineRepository.findAll());
-        return "lecturerDisciplines";
-    }
-
-    @PostMapping("/disciplines/add")
-    public String addDiscipline(@PathVariable Long id, @RequestParam Long disciplineId, RedirectAttributes redirectAttributes) {
-        LectureEntity lecturer = lectureService.findByLectureId(id);
-        DisciplineEntity discipline = disciplineRepository.findById(disciplineId)
-                .orElseThrow(() -> new RuntimeException("Discipline not found"));
-        
-        if (!lecturer.getDisciplines().contains(discipline)) {
-            lecturer.getDisciplines().add(discipline);
-            lectureService.save(lecturer);
-            redirectAttributes.addFlashAttribute("successMessage", "Дисципліну додано!");
-        }
-        return "redirect:/admin/lecturer/" + id + "/disciplines";
-    }
-
-    @PostMapping("/disciplines/remove")
-    public String removeDiscipline(@PathVariable Long id, @RequestParam Long disciplineId, RedirectAttributes redirectAttributes) {
-        LectureEntity lecturer = lectureService.findByLectureId(id);
-        lecturer.getDisciplines().removeIf(d -> d.getDisciplineId().equals(disciplineId));
-        lectureService.save(lecturer);
-        redirectAttributes.addFlashAttribute("successMessage", "Дисципліну вилучено!");
-        return "redirect:/admin/lecturer/" + id + "/disciplines";
-    }
-
-    @PostMapping("/disciplines/create-global")
-    public String createGlobalDiscipline(@PathVariable Long id, @RequestParam String disciplineName, RedirectAttributes redirectAttributes) {
-        DisciplineEntity d = new DisciplineEntity();
-        d.setDisciplineName(disciplineName);
-        disciplineRepository.save(d);
-        redirectAttributes.addFlashAttribute("successMessage", "Створено нову дисципліну в довіднику!");
-        return "redirect:/admin/lecturer/" + id + "/disciplines";
-    }
-
     @GetMapping("/certificates")
     public String certificates(@PathVariable Long id, Model model) {
         LectureEntity lecturer = lectureService.findByLectureId(id);
         List<UpskillEventEntity> events = upskillEventRepository.findAllByLectureEntity_LectureId(id);
         model.addAttribute("lecturer", lecturer);
         model.addAttribute("events", events);
+        model.addAttribute("allDisciplines", disciplineRepository.findAll());
         return "lecturerCertificates";
     }
 
     @PostMapping("/certificates/upload")
+    @org.springframework.transaction.annotation.Transactional
     public String uploadCertificate(@PathVariable Long id, 
                                     @RequestParam("file") MultipartFile file,
+                                    @RequestParam(value = "disciplineIds", required = false) List<Long> disciplineIds,
                                     @ModelAttribute UpskillEventEntity event,
                                     RedirectAttributes redirectAttributes) throws IOException {
         
@@ -143,6 +109,12 @@ public class LecturerManagementController {
 
         event.setLectureEntity(lecturer);
         event.setDocumentEntity(doc);
+        
+        if (disciplineIds != null && !disciplineIds.isEmpty()) {
+            List<DisciplineEntity> selectedDisciplines = disciplineRepository.findAllById(disciplineIds);
+            event.setDisciplines(selectedDisciplines);
+        }
+
         upskillEventRepository.save(event);
 
         redirectAttributes.addFlashAttribute("successMessage", "Сертифікат успішно завантажено!");
@@ -154,5 +126,22 @@ public class LecturerManagementController {
         upskillEventRepository.deleteById(eventId);
         redirectAttributes.addFlashAttribute("successMessage", "Сертифікат успішно видалено!");
         return "redirect:/admin/lecturer/" + id + "/certificates";
+    }
+
+    @GetMapping("/certificates/download/{eventId}")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public ResponseEntity<byte[]> downloadCertificate(@PathVariable Long id, @PathVariable Long eventId) {
+        UpskillEventEntity event = upskillEventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Certificate not found"));
+        
+        DocumentEntity doc = event.getDocumentEntity();
+        if (doc == null || doc.getFileData() == null) {
+            throw new RuntimeException("File data not found");
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getFileName() + "\"")
+                .contentType(MediaType.parseMediaType(doc.getContentType()))
+                .body(doc.getFileData());
     }
 }

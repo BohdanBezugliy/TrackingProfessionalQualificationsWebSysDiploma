@@ -60,12 +60,4 @@ public class LectureEntity {
 
     @OneToMany(mappedBy = "lectureEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EducationEntity> educations;
-
-    @ManyToMany
-    @JoinTable(
-        name = "lecture_discipline",
-        joinColumns = @JoinColumn(name = "lecture_id"),
-        inverseJoinColumns = @JoinColumn(name = "discipline_id")
-    )
-    private List<DisciplineEntity> disciplines;
 }

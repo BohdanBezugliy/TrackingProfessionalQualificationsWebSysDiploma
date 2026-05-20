@@ -7,6 +7,7 @@ import com.BezuhlyiBohdanK22_1.qualitrack.entity.EducationEntity;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.LectureEntity;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.UserEntity;
 import com.BezuhlyiBohdanK22_1.qualitrack.exception.LectureNotFoundException;
+import com.BezuhlyiBohdanK22_1.qualitrack.exception.UserAlreadyExistsException;
 import com.BezuhlyiBohdanK22_1.qualitrack.repository.DepartmentRepository;
 import com.BezuhlyiBohdanK22_1.qualitrack.repository.EducationRepository;
 import com.BezuhlyiBohdanK22_1.qualitrack.repository.LectureRepository;
@@ -30,9 +31,14 @@ public class LectureService implements ILectureService {
 
     @Transactional
     public void saveLecturer(LectureDto dto) {
+        String email = dto.userRegistrationDto().email();
+        if (userRepository.existsByEmail(email)) {
+            throw new UserAlreadyExistsException("Користувач з email " + email + " вже існує.");
+        }
+
         // 1. Створюємо User
         UserEntity user = new UserEntity();
-        user.setEmail(dto.userRegistrationDto().email());
+        user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(dto.userRegistrationDto().password()));
         user.setUserRole(dto.userRegistrationDto().role());
         
@@ -82,6 +88,11 @@ public class LectureService implements ILectureService {
     @Override
     public void save(LectureEntity lectureEntity) {
         lectureRepository.save(lectureEntity);
+    }
+
+    @Override
+    public void delete(LectureEntity lectureEntity) {
+        lectureRepository.delete(lectureEntity);
     }
 
     @Override

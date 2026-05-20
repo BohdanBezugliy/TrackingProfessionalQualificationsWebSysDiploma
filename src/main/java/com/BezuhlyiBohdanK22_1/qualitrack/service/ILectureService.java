@@ -10,6 +10,7 @@ public interface ILectureService {
     void saveLecturer(LectureDto dto);
     List<LectureEntity> findAll();
     void save(LectureEntity lectureEntity);
+    void delete(LectureEntity lectureEntity);
     void deleteLecturerById(Long lectureId);
     void updateProfile(Long lectureId, LectureDto dto);
     void updatePassword(Long lectureId, String newPassword);

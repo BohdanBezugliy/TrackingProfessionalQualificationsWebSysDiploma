@@ -49,12 +49,21 @@
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
+    <!-- Сповіщення про помилку (якщо є) -->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <span th:text="${errorMessage}">Виникла помилка!</span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
     <!-- Шапка з кнопками створення -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="h4 mb-0">Керування системою</h2>
       <div class="d-flex gap-2">
         <a th:href="@{/admin/structure}" class="btn btn-outline-primary shadow-sm">
           Керування структурою (Факультети/Кафедри)
+        </a>
+        <a th:href="@{/admin/disciplines}" class="btn btn-outline-primary shadow-sm">
+          Довідник дисциплін
         </a>
         <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal"
           data-bs-target="#createUserModal">
@@ -128,10 +137,6 @@
                   <a th:href="@{/admin/lecturer/{id}/certificates(id=${lecturer.lectureId})}"
                     class="btn btn-sm btn-info text-white">
                     Сертифікати
-                  </a>
-                  <a th:href="@{/admin/lecturer/{id}/disciplines(id=${lecturer.lectureId})}"
-                    class="btn btn-sm btn-secondary text-white">
-                    Дисципліни
                   </a>
                 </td>
               </tr>

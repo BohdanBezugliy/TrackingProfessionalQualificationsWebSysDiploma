@@ -23,7 +23,7 @@ public class UpskillEventEntity {
     @Column(name = "institution_name")
     private String institutionName;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "document_id")
     private DocumentEntity documentEntity;
 
