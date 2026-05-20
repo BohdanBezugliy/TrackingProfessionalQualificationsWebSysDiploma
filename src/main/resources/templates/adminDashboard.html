@@ -56,9 +56,9 @@
     </div>
 
     <!-- Шапка з кнопками створення -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
       <h2 class="h4 mb-0">Керування системою</h2>
-      <div class="d-flex gap-2">
+      <div class="d-flex flex-wrap gap-2 justify-content-center">
         <a th:href="@{/admin/structure}" class="btn btn-outline-primary shadow-sm">
           Керування структурою (Факультети/Кафедри)
         </a>
@@ -74,29 +74,41 @@
 
     <!-- Блок пошуку -->
     <div class="row justify-content-center mb-5">
-      <div class="col-md-9">
+      <div class="col-12 col-lg-10 col-xl-9">
         <div class="card shadow-sm">
           <div class="card-body p-4">
             <h5 class="card-title text-center mb-4">Пошук</h5>
 
-            <form th:action="@{/admin/lecturers/search}" method="get" class="d-flex gap-2">
-              <select name="searchType" class="form-select w-auto">
-                <option value="name" th:selected="${param.searchType != null and param.searchType[0] == 'name'}">За ПІБ
-                </option>
-                <option value="faculty" th:selected="${param.searchType != null and param.searchType[0] == 'faculty'}">
-                  За факультетом</option>
-                <option value="department"
-                  th:selected="${param.searchType != null and param.searchType[0] == 'department'}">За кафедрою</option>
-                <option value="email" th:selected="${param.searchType != null and param.searchType[0] == 'email'}">За
-                  Email</option>
-              </select>
-
-              <input type="text" name="keyword" class="form-control" placeholder="Введіть дані для пошуку..."
-                th:value="${param.keyword}">
-
-              <button type="submit" class="btn btn-primary px-4">Знайти</button>
-              <a th:href="@{/admin/lecturers/search}" class="btn btn-outline-secondary"
-                th:if="${param.keyword != null}">Скинути</a>
+            <form th:action="@{/admin/dashboard}" method="get" class="row gx-2 gy-3 align-items-center justify-content-center">
+              <div class="col-12 col-md-3">
+                <input type="text" name="keyword" class="form-control" placeholder="ПІБ або Email..." th:value="${param.keyword}">
+              </div>
+              <div class="col-12 col-md-3">
+                <select name="facultyId" class="form-select">
+                  <option value="">Всі факультети</option>
+                  <option th:each="f : ${faculties}" th:value="${f.facultyId}" th:text="${f.facultyName}" th:selected="${param.facultyId != null and param.facultyId[0] == f.facultyId.toString()}"></option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4">
+                <select name="departmentId" class="form-select">
+                  <option value="">Всі кафедри</option>
+                  <option th:each="d : ${departments}" th:value="${d.departmentId}" th:text="${d.departmentName}" th:selected="${param.departmentId != null and param.departmentId[0] == d.departmentId.toString()}"></option>
+                </select>
+              </div>
+              
+              <div class="col-12 col-md-2 d-flex">
+                <button type="submit" class="btn btn-primary w-100">Знайти</button>
+              </div>
+              
+              <div class="col-12 text-center mt-3" th:if="${param.keyword != null or param.facultyId != null or param.departmentId != null}">
+                <a th:href="@{/admin/dashboard}" class="btn btn-outline-danger px-4 rounded-pill shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle me-1 mb-1" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                  </svg>
+                  Скинути фільтри
+                </a>
+              </div>
             </form>
           </div>
         </div>

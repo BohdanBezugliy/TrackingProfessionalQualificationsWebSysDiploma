@@ -25,11 +25,20 @@ public class AdminController {
     private final IDepartmentService departmentService;
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        logger.info("Dashboard Admin");
+    public String dashboard(@RequestParam(required = false) String keyword,
+                            @RequestParam(required = false) Long facultyId,
+                            @RequestParam(required = false) Long departmentId,
+                            Model model) {
+        logger.info("Dashboard Admin - Search params: keyword={}, facultyId={}, departmentId={}", keyword, facultyId, departmentId);
         model.addAttribute("faculties", facultyService.findAll());
         model.addAttribute("departments", departmentService.findAll());
-        model.addAttribute("lecturers", lectureService.findAll());
+        
+        if ((keyword != null && !keyword.trim().isEmpty()) || facultyId != null || departmentId != null) {
+            model.addAttribute("lecturers", lectureService.searchLecturers(keyword, facultyId, departmentId));
+        } else {
+            model.addAttribute("lecturers", lectureService.findAll());
+        }
+        
         return "adminDashboard";
     }
 

@@ -17,7 +17,7 @@ public interface ILectureService {
     List<LectureEntity> findAllByLectureName(String lectureName);
     List<LectureEntity> findAllByFacultyName(String facultyName);
     List<LectureEntity> findAllByDepartmentName(String departmentName);
-    List<LectureEntity> findAllByFacultyNameAndDepartmentName(String facultyName, String departmentName);
+    List<LectureEntity> searchLecturers(String keyword, Long facultyId, Long departmentId);
     BigDecimal countHoursByLectureIdForYear(Long lectureId, Integer year);
     BigDecimal countCreditsByLectureIdForYear(Long lectureId, Integer year);
 }

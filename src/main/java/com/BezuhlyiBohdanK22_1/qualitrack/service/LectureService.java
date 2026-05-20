@@ -166,8 +166,12 @@ public class LectureService implements ILectureService {
     }
 
     @Override
-    public List<LectureEntity> findAllByFacultyNameAndDepartmentName(String facultyName, String departmentName) {
-        return List.of();
+    public List<LectureEntity> searchLecturers(String keyword, Long facultyId, Long departmentId) {
+        String keywordPattern = null;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            keywordPattern = "%" + keyword.trim().toLowerCase() + "%";
+        }
+        return lectureRepository.searchLecturers(keywordPattern, facultyId, departmentId);
     }
 
     @Override
