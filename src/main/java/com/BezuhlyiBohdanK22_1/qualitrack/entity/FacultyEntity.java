@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table
+@Table(name = "faculties")
 public class FacultyEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,4 +22,7 @@ public class FacultyEntity {
     @Column(name = "faculty_name")
     @Size(max = 255)
     private String facultyName;
+
+    @OneToMany(mappedBy = "facultyEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DepartmentEntity> departments;
 }

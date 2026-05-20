@@ -27,4 +27,9 @@ public class FacultyService implements IFacultyService {
     public FacultyEntity save(FacultyEntity facultyEntity) {
         return facultyRepository.save(facultyEntity);
     }
+
+    @Override
+    public void deleteById(Long id) {
+        facultyRepository.deleteById(id);
+    }
 }

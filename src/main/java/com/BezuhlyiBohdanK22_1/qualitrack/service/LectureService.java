@@ -85,11 +85,6 @@ public class LectureService implements ILectureService {
     }
 
     @Override
-    public void delete(LectureEntity lectureEntity) {
-        lectureRepository.delete(lectureEntity);
-    }
-
-    @Override
     @Transactional
     public void deleteLecturerById(Long lectureId) {
         LectureEntity lecturer = lectureRepository.findById(lectureId)
@@ -107,6 +102,40 @@ public class LectureService implements ILectureService {
         // 4. Delete user
         if (user != null) {
             userRepository.delete(user);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateProfile(Long lectureId, LectureDto dto) {
+        LectureEntity lecturer = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new LectureNotFoundException("Lecture not found!"));
+        
+        lecturer.setFirstName(dto.firstName());
+        lecturer.setLastName(dto.lastName());
+        lecturer.setMiddleName(dto.middleName());
+        lecturer.setAcademicDegree(dto.academicDegree());
+        lecturer.setAcademicRank(dto.academicRank());
+        
+        if (dto.departmentId() != null) {
+            DepartmentEntity dept = departmentRepository.findById(dto.departmentId())
+                    .orElseThrow(() -> new RuntimeException("Department not found"));
+            lecturer.setDepartmentEntity(dept);
+        }
+        
+        lectureRepository.save(lecturer);
+    }
+
+    @Override
+    @Transactional
+    public void updatePassword(Long lectureId, String newPassword) {
+        LectureEntity lecturer = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new LectureNotFoundException("Lecture not found!"));
+        
+        UserEntity user = lecturer.getUserEntity();
+        if (user != null) {
+            user.setPasswordHash(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
         }
     }
 

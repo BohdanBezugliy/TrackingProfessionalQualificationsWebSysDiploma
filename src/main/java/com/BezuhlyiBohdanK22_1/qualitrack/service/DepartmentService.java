@@ -27,4 +27,9 @@ public class DepartmentService implements IDepartmentService {
     public DepartmentEntity save(DepartmentEntity departmentEntity) {
         return departmentRepository.save(departmentEntity);
     }
+
+    @Override
+    public void deleteById(Long id) {
+        departmentRepository.deleteById(id);
+    }
 }

@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
-@Table(name = "upskill_event")
+@Table(name = "upskill_events")
 @Getter
 @Setter
 public class UpskillEventEntity {
@@ -58,7 +58,7 @@ public class UpskillEventEntity {
 
     @ManyToMany
     @JoinTable(
-            name = "discipline_upskill_event",
+            name = "disciplines_upskill_events",
             joinColumns = @JoinColumn(name = "upskill_event_id"),
             inverseJoinColumns = @JoinColumn(name = "discipline_id")
     )

@@ -7,4 +7,5 @@ public interface IFacultyService {
     List<FacultyEntity> findAll();
     FacultyEntity findById(Long id);
     FacultyEntity save(FacultyEntity facultyEntity);
+    void deleteById(Long id);
 }

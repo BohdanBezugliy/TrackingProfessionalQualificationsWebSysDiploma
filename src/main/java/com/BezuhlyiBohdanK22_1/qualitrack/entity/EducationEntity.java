@@ -8,7 +8,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "education")
+@Table(name = "educations")
 @Getter
 @Setter
 public class EducationEntity {

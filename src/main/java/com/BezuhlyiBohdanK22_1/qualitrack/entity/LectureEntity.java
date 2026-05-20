@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Table(name = "lectures")
 @Entity
@@ -48,7 +49,7 @@ public class LectureEntity {
     private String academicRank;
 
     @NotNull
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
     private UserEntity userEntity;
 
@@ -56,4 +57,15 @@ public class LectureEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
     private DepartmentEntity departmentEntity;
+
+    @OneToMany(mappedBy = "lectureEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EducationEntity> educations;
+
+    @ManyToMany
+    @JoinTable(
+        name = "lecture_discipline",
+        joinColumns = @JoinColumn(name = "lecture_id"),
+        inverseJoinColumns = @JoinColumn(name = "discipline_id")
+    )
+    private List<DisciplineEntity> disciplines;
 }

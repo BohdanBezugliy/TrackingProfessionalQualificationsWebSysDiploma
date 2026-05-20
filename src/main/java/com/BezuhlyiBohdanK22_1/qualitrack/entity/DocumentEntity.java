@@ -8,7 +8,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "document")
+@Table(name = "documents")
 @Getter
 @Setter
 public class DocumentEntity {
@@ -37,7 +37,7 @@ public class DocumentEntity {
     @Column(name = "file_size")
     private Long fileSize;
 
-    @NotBlank
-    @Column(name = "file_path", columnDefinition = "TEXT")
-    private String filePath;
+    @Lob
+    @Column(name = "file_data", nullable = false)
+    private byte[] fileData;
 }

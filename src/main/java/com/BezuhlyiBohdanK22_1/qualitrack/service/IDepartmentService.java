@@ -7,4 +7,5 @@ public interface IDepartmentService {
     List<DepartmentEntity> findAll();
     DepartmentEntity findById(Long id);
     DepartmentEntity save(DepartmentEntity departmentEntity);
+    void deleteById(Long id);
 }

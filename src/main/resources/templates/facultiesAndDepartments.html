@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Керування структурою - QualiTrack</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<!-- Навігаційна панель -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+  <div class="container">
+    <a class="navbar-brand" href="#">QualiTrack | Адмін</a>
+    <div class="d-flex gap-3 align-items-center">
+      <a th:href="@{/admin/dashboard}" class="text-light text-decoration-none">Назад до панелі</a>
+      <form th:action="@{/logout}" method="post" class="mb-0">
+        <button class="btn btn-outline-light btn-sm" type="submit">Вийти з системи</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+
+  <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <span th:text="${successMessage}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Керування факультетами та кафедрами</h2>
+  </div>
+
+  <div class="row">
+    <!-- Факультети -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Факультети</h5>
+          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createFacultyModal">+ Додати</button>
+        </div>
+        <div class="card-body p-0">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between align-items-center" th:each="fac : ${faculties}">
+              <span th:text="${fac.facultyName}" class="fw-bold">Факультет</span>
+              <div>
+                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" th:data-bs-target="'#editFacultyModal' + ${fac.facultyId}">Редагувати</button>
+                <form th:action="@{/admin/faculty/delete/{id}(id=${fac.facultyId})}" method="post" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Ви впевнені? Всі кафедри та викладачі цього факультету також можуть бути видалені!');">Видалити</button>
+                </form>
+              </div>
+
+              <!-- Модальне вікно редагування факультету -->
+              <div class="modal fade" th:id="'editFacultyModal' + ${fac.facultyId}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <form th:action="@{/admin/faculty/update/{id}(id=${fac.facultyId})}" method="post">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Редагування факультету</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="mb-3">
+                          <label class="form-label">Назва факультету</label>
+                          <input type="text" class="form-control" name="facultyName" th:value="${fac.facultyName}" required>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                        <button type="submit" class="btn btn-primary">Зберегти</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+            </li>
+            <li class="list-group-item text-muted text-center" th:if="${#lists.isEmpty(faculties)}">Немає факультетів</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Кафедри -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Кафедри</h5>
+          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createDepartmentModal">+ Додати</button>
+        </div>
+        <div class="card-body p-0">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item" th:each="dep : ${departments}">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <div class="fw-bold" th:text="${dep.departmentName}">Кафедра</div>
+                  <small class="text-muted" th:text="${dep.facultyEntity.facultyName}">Факультет</small>
+                </div>
+                <div>
+                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" th:data-bs-target="'#editDepartmentModal' + ${dep.departmentId}">Редагувати</button>
+                  <form th:action="@{/admin/department/delete/{id}(id=${dep.departmentId})}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Ви впевнені? Всі викладачі цієї кафедри також можуть бути видалені!');">Видалити</button>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Модальне вікно редагування кафедри -->
+              <div class="modal fade" th:id="'editDepartmentModal' + ${dep.departmentId}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <form th:action="@{/admin/department/update/{id}(id=${dep.departmentId})}" method="post">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Редагування кафедри</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="mb-3">
+                          <label class="form-label">Факультет <span class="text-danger">*</span></label>
+                          <select class="form-select" name="facultyId" required>
+                            <option th:each="fac : ${faculties}" th:value="${fac.facultyId}" th:text="${fac.facultyName}" th:selected="${fac.facultyId == dep.facultyEntity.facultyId}"></option>
+                          </select>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label">Назва кафедри <span class="text-danger">*</span></label>
+                          <input type="text" class="form-control" name="departmentName" th:value="${dep.departmentName}" required>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                        <button type="submit" class="btn btn-primary">Зберегти</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+            </li>
+            <li class="list-group-item text-muted text-center" th:if="${#lists.isEmpty(departments)}">Немає кафедр</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Модальне вікно: Створення факультету -->
+<div class="modal fade" id="createFacultyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form th:action="@{/admin/faculty/create}" method="post">
+        <div class="modal-header">
+          <h5 class="modal-title">Новий факультет</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Назва факультету <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="facultyName" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+          <button type="submit" class="btn btn-primary">Зберегти</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Модальне вікно: Створення кафедри -->
+<div class="modal fade" id="createDepartmentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form th:action="@{/admin/department/create}" method="post">
+        <div class="modal-header">
+          <h5 class="modal-title">Нова кафедра</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Факультет <span class="text-danger">*</span></label>
+            <select class="form-select" name="facultyId" required>
+              <option value="">Оберіть факультет...</option>
+              <option th:each="fac : ${faculties}" th:value="${fac.facultyId}" th:text="${fac.facultyName}"></option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Назва кафедри <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="departmentName" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+          <button type="submit" class="btn btn-primary">Зберегти</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

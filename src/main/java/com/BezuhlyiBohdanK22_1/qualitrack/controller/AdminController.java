@@ -33,12 +33,38 @@ public class AdminController {
         return "adminDashboard";
     }
 
+    @GetMapping("/structure")
+    public String structure(Model model) {
+        logger.info("Structure Management Admin");
+        model.addAttribute("faculties", facultyService.findAll());
+        model.addAttribute("departments", departmentService.findAll());
+        return "facultiesAndDepartments";
+    }
+
     @PostMapping("/faculty/create")
     public String createFaculty(@ModelAttribute FacultyEntity faculty, RedirectAttributes redirectAttributes) {
         logger.info("Create Faculty: {}", faculty.getFacultyName());
         facultyService.save(faculty);
         redirectAttributes.addFlashAttribute("successMessage", "Факультет успішно створено!");
-        return "redirect:/admin/dashboard";
+        return "redirect:/admin/structure";
+    }
+
+    @PostMapping("/faculty/update/{id}")
+    public String updateFaculty(@PathVariable Long id, @RequestParam String facultyName, RedirectAttributes redirectAttributes) {
+        logger.info("Update Faculty: {}", id);
+        FacultyEntity faculty = facultyService.findById(id);
+        faculty.setFacultyName(facultyName);
+        facultyService.save(faculty);
+        redirectAttributes.addFlashAttribute("successMessage", "Факультет успішно оновлено!");
+        return "redirect:/admin/structure";
+    }
+
+    @PostMapping("/faculty/delete/{id}")
+    public String deleteFaculty(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        logger.info("Delete Faculty: {}", id);
+        facultyService.deleteById(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Факультет успішно видалено!");
+        return "redirect:/admin/structure";
     }
 
     @PostMapping("/department/create")
@@ -48,7 +74,27 @@ public class AdminController {
         department.setFacultyEntity(faculty);
         departmentService.save(department);
         redirectAttributes.addFlashAttribute("successMessage", "Кафедру успішно створено!");
-        return "redirect:/admin/dashboard";
+        return "redirect:/admin/structure";
+    }
+
+    @PostMapping("/department/update/{id}")
+    public String updateDepartment(@PathVariable Long id, @RequestParam String departmentName, @RequestParam Long facultyId, RedirectAttributes redirectAttributes) {
+        logger.info("Update Department: {}", id);
+        DepartmentEntity department = departmentService.findById(id);
+        department.setDepartmentName(departmentName);
+        FacultyEntity faculty = facultyService.findById(facultyId);
+        department.setFacultyEntity(faculty);
+        departmentService.save(department);
+        redirectAttributes.addFlashAttribute("successMessage", "Кафедру успішно оновлено!");
+        return "redirect:/admin/structure";
+    }
+
+    @PostMapping("/department/delete/{id}")
+    public String deleteDepartment(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        logger.info("Delete Department: {}", id);
+        departmentService.deleteById(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Кафедру успішно видалено!");
+        return "redirect:/admin/structure";
     }
 
     @PostMapping("/lecturers/create")
