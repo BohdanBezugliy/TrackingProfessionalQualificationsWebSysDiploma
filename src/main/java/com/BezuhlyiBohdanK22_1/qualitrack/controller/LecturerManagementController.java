@@ -1,8 +1,13 @@
 package com.BezuhlyiBohdanK22_1.qualitrack.controller;
 
-import com.BezuhlyiBohdanK22_1.qualitrack.dto.LectureDto;
-import com.BezuhlyiBohdanK22_1.qualitrack.dto.LecturerUpdateDto;
+import com.BezuhlyiBohdanK22_1.qualitrack.dto.DisciplineDto;
+import com.BezuhlyiBohdanK22_1.qualitrack.dto.LecturerDto;
+import com.BezuhlyiBohdanK22_1.qualitrack.dto.UpskillEventDto;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.*;
+import com.BezuhlyiBohdanK22_1.qualitrack.mapper.DepartmentMapper;
+import com.BezuhlyiBohdanK22_1.qualitrack.mapper.DisciplineMapper;
+import com.BezuhlyiBohdanK22_1.qualitrack.mapper.LecturerMapper;
+import com.BezuhlyiBohdanK22_1.qualitrack.mapper.UpskillEventMapper;
 import com.BezuhlyiBohdanK22_1.qualitrack.repository.DepartmentRepository;
 import com.BezuhlyiBohdanK22_1.qualitrack.repository.DisciplineRepository;
 import com.BezuhlyiBohdanK22_1.qualitrack.repository.DocumentRepository;
@@ -10,6 +15,7 @@ import com.BezuhlyiBohdanK22_1.qualitrack.repository.UpskillEventRepository;
 import com.BezuhlyiBohdanK22_1.qualitrack.service.ILectureService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +33,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/lecturer/{id}")
@@ -38,6 +45,11 @@ public class LecturerManagementController {
     private final DisciplineRepository disciplineRepository;
     private final UpskillEventRepository upskillEventRepository;
     private final DocumentRepository documentRepository;
+    
+    private final LecturerMapper lecturerMapper;
+    private final UpskillEventMapper upskillEventMapper;
+    private final DisciplineMapper disciplineMapper;
+    private final DepartmentMapper departmentMapper;
 
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
             "application/pdf",
@@ -48,24 +60,24 @@ public class LecturerManagementController {
     );
 
     @GetMapping("/profile")
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public String profile(@PathVariable Long id, Model model) {
         LectureEntity lecturer = lectureService.findByLectureId(id);
-        model.addAttribute("lecturer", lecturer);
+        model.addAttribute("lecturer", lecturerMapper.toDto(lecturer));
         return "lecturerProfile";
     }
 
     @GetMapping("/profile/edit")
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public String editProfile(@PathVariable Long id, Model model) {
         LectureEntity lecturer = lectureService.findByLectureId(id);
-        model.addAttribute("lecturer", lecturer);
-        model.addAttribute("departments", departmentRepository.findAll());
+        model.addAttribute("lecturer", lecturerMapper.toDto(lecturer));
+        model.addAttribute("departments", departmentRepository.findAll().stream().map(departmentMapper::toDto).collect(Collectors.toList()));
         return "editLecturerProfile";
     }
 
     @PostMapping("/profile/update")
-    public String updateProfile(@PathVariable Long id, @ModelAttribute LecturerUpdateDto dto, RedirectAttributes redirectAttributes) {
+    public String updateProfile(@PathVariable Long id, @ModelAttribute LecturerDto dto, RedirectAttributes redirectAttributes) {
         try {
             lectureService.updateProfile(id, dto);
             redirectAttributes.addFlashAttribute("successMessage", "Профіль успішно оновлено!");
@@ -91,11 +103,11 @@ public class LecturerManagementController {
     }
 
     public static class YearSummary {
-        private List<UpskillEventEntity> events = new ArrayList<>();
+        private List<UpskillEventDto> events = new ArrayList<>();
         private BigDecimal totalEcts = BigDecimal.ZERO;
         private int totalHours = 0;
 
-        public void addEvent(UpskillEventEntity event) {
+        public void addEvent(UpskillEventDto event) {
             events.add(event);
             if (event.getEctsCredits() != null) {
                 totalEcts = totalEcts.add(event.getEctsCredits());
@@ -104,18 +116,18 @@ public class LecturerManagementController {
                 totalHours += event.getHours();
             }
         }
-        public List<UpskillEventEntity> getEvents() { return events; }
+        public List<UpskillEventDto> getEvents() { return events; }
         public BigDecimal getTotalEcts() { return totalEcts; }
         public int getTotalHours() { return totalHours; }
     }
 
     @GetMapping("/certificates")
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public String certificates(@PathVariable Long id, Model model) {
         LectureEntity lecturer = lectureService.findByLectureId(id);
         List<UpskillEventEntity> events = upskillEventRepository.findAllByLectureEntity_LectureId(id);
         
-        Map<DisciplineEntity, Map<Integer, YearSummary>> groupedEvents = new TreeMap<>(Comparator.comparing(DisciplineEntity::getDisciplineName));
+        Map<DisciplineDto, Map<Integer, YearSummary>> groupedEvents = new TreeMap<>(Comparator.comparing(DisciplineDto::getDisciplineName));
         
         // Force initialization inside transaction to prevent Postgres Large Object exception
         events.forEach(e -> {
@@ -123,31 +135,33 @@ public class LecturerManagementController {
                 e.getDocumentEntity().getDocumentType();
             }
             
+            UpskillEventDto dto = upskillEventMapper.toDto(e);
+            
             int year = e.getDateEnd() != null ? e.getDateEnd().getYear() : 0;
             if (e.getDisciplines() != null && !e.getDisciplines().isEmpty()) {
                 for (DisciplineEntity disc : e.getDisciplines()) {
                     groupedEvents
-                        .computeIfAbsent(disc, k -> new TreeMap<>(Collections.reverseOrder()))
+                        .computeIfAbsent(disciplineMapper.toDto(disc), k -> new TreeMap<>(Collections.reverseOrder()))
                         .computeIfAbsent(year, k -> new YearSummary())
-                        .addEvent(e);
+                        .addEvent(dto);
                 }
             }
         });
 
-        model.addAttribute("lecturer", lecturer);
-        model.addAttribute("events", events); // keeping flat list just in case
+        model.addAttribute("lecturer", lecturerMapper.toDto(lecturer));
+        model.addAttribute("events", events.stream().map(upskillEventMapper::toDto).collect(Collectors.toList())); // keeping flat list just in case
         model.addAttribute("groupedEvents", groupedEvents);
-        model.addAttribute("allDisciplines", disciplineRepository.findAll());
+        model.addAttribute("allDisciplines", disciplineRepository.findAll().stream().map(disciplineMapper::toDto).collect(Collectors.toList()));
         return "lecturerCertificates";
     }
 
     @PostMapping("/certificates/upload")
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public String uploadCertificate(@PathVariable Long id, 
                                     @RequestParam("file") MultipartFile file,
                                     @RequestParam("documentType") String documentType,
                                     @RequestParam(value = "disciplineIds", required = false) List<Long> disciplineIds,
-                                    @ModelAttribute UpskillEventEntity event,
+                                    @ModelAttribute UpskillEventDto eventDto,
                                     RedirectAttributes redirectAttributes) throws IOException {
         
         if (file.isEmpty()) {
@@ -170,6 +184,16 @@ public class LecturerManagementController {
         doc.setFileData(file.getBytes());
         documentRepository.save(doc);
 
+        UpskillEventEntity event = new UpskillEventEntity();
+        event.setDocumentNumber(eventDto.getDocumentNumber());
+        event.setInstitutionName(eventDto.getInstitutionName());
+        event.setTopic(eventDto.getTopic());
+        event.setEctsCredits(eventDto.getEctsCredits());
+        event.setHours(eventDto.getHours());
+        event.setDateBegin(eventDto.getDateBegin());
+        event.setDateEnd(eventDto.getDateEnd());
+        event.setDateReceived(eventDto.getDateReceived());
+
         event.setLectureEntity(lecturer);
         event.setDocumentEntity(doc);
         
@@ -190,7 +214,7 @@ public class LecturerManagementController {
                                     @PathVariable Long eventId,
                                     @RequestParam(value = "file", required = false) MultipartFile file,
                                     @RequestParam("documentType") String documentType,
-                                    @ModelAttribute UpskillEventEntity eventDetails,
+                                    @ModelAttribute UpskillEventDto eventDetails,
                                     RedirectAttributes redirectAttributes) throws IOException {
         
         UpskillEventEntity existingEvent = upskillEventRepository.findById(eventId)
@@ -232,7 +256,7 @@ public class LecturerManagementController {
     }
 
     @GetMapping("/certificates/download/{eventId}")
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public ResponseEntity<byte[]> downloadCertificate(@PathVariable Long id, @PathVariable Long eventId) {
         UpskillEventEntity event = upskillEventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Certificate not found"));

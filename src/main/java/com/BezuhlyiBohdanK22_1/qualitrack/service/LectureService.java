@@ -2,7 +2,7 @@ package com.BezuhlyiBohdanK22_1.qualitrack.service;
 
 import com.BezuhlyiBohdanK22_1.qualitrack.dto.EducationDto;
 import com.BezuhlyiBohdanK22_1.qualitrack.dto.LectureDto;
-import com.BezuhlyiBohdanK22_1.qualitrack.dto.LecturerUpdateDto;
+import com.BezuhlyiBohdanK22_1.qualitrack.dto.LecturerDto;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.DepartmentEntity;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.EducationEntity;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.LectureEntity;
@@ -18,7 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,9 +66,9 @@ public class LectureService implements ILectureService {
         if (dto.educations() != null) {
             for (EducationDto eduDto : dto.educations()) {
                 EducationEntity edu = new EducationEntity();
-                edu.setInstitutionName(eduDto.institutionName());
-                edu.setSpecialization(eduDto.specialization());
-                edu.setEndingDate(eduDto.endingDate());
+                edu.setInstitutionName(eduDto.getInstitutionName());
+                edu.setSpecialization(eduDto.getSpecialization());
+                edu.setEndingDate(eduDto.getEndingDate());
                 edu.setLectureEntity(lecturer);
                 educationRepository.save(edu);
             }
@@ -90,11 +89,6 @@ public class LectureService implements ILectureService {
     @Override
     public void save(LectureEntity lectureEntity) {
         lectureRepository.save(lectureEntity);
-    }
-
-    @Override
-    public void delete(LectureEntity lectureEntity) {
-        lectureRepository.delete(lectureEntity);
     }
 
     @Override
@@ -120,38 +114,38 @@ public class LectureService implements ILectureService {
 
     @Override
     @Transactional
-    public void updateProfile(Long lectureId, LecturerUpdateDto dto) {
+    public void updateProfile(Long lectureId, LecturerDto dto) {
         LectureEntity lecturer = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new LectureNotFoundException("Lecture not found!"));
         
         // Update user email if changed
         UserEntity user = lecturer.getUserEntity();
-        if (user != null && dto.email() != null && !dto.email().equals(user.getEmail())) {
-            if (userRepository.existsByEmail(dto.email())) {
+        if (user != null && dto.getEmail() != null && !dto.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(dto.getEmail())) {
                 throw new UserAlreadyExistsException("Користувач з таким email вже існує!");
             }
-            user.setEmail(dto.email());
+            user.setEmail(dto.getEmail());
             userRepository.save(user);
         }
 
-        lecturer.setFirstName(dto.firstName());
-        lecturer.setLastName(dto.lastName());
-        lecturer.setMiddleName(dto.middleName());
-        lecturer.setAcademicDegree(dto.academicDegree());
-        lecturer.setAcademicRank(dto.academicRank());
+        lecturer.setFirstName(dto.getFirstName());
+        lecturer.setLastName(dto.getLastName());
+        lecturer.setMiddleName(dto.getMiddleName());
+        lecturer.setAcademicDegree(dto.getAcademicDegree());
+        lecturer.setAcademicRank(dto.getAcademicRank());
         
-        if (dto.hireDate() != null) {
-            lecturer.setHireDate(dto.hireDate());
+        if (dto.getHireDate() != null) {
+            lecturer.setHireDate(dto.getHireDate());
         }
         
-        if (dto.departmentId() != null) {
-            DepartmentEntity dept = departmentRepository.findById(dto.departmentId())
+        if (dto.getDepartmentId() != null) {
+            DepartmentEntity dept = departmentRepository.findById(dto.getDepartmentId())
                     .orElseThrow(() -> new RuntimeException("Department not found"));
             lecturer.setDepartmentEntity(dept);
         }
         
         // Handle education updates
-        if (dto.educations() != null) {
+        if (dto.getEducations() != null) {
             // Remove existing educations
             if (lecturer.getEducations() != null) {
                 lecturer.getEducations().clear();
@@ -159,15 +153,14 @@ public class LectureService implements ILectureService {
                 lecturer.setEducations(new ArrayList<>());
             }
             
-            // Add new educations
-            for (EducationDto ed : dto.educations()) {
-                if (ed.institutionName() != null && !ed.institutionName().trim().isEmpty()) {
-                    EducationEntity eduEntity = new EducationEntity();
-                    eduEntity.setInstitutionName(ed.institutionName());
-                    eduEntity.setSpecialization(ed.specialization());
-                    eduEntity.setEndingDate(ed.endingDate());
-                    eduEntity.setLectureEntity(lecturer);
-                    lecturer.getEducations().add(eduEntity);
+            for (com.BezuhlyiBohdanK22_1.qualitrack.dto.EducationDto edDto : dto.getEducations()) {
+                if (edDto.getInstitutionName() != null && !edDto.getInstitutionName().isEmpty()) {
+                    EducationEntity edEntity = new EducationEntity();
+                    edEntity.setInstitutionName(edDto.getInstitutionName());
+                    edEntity.setSpecialization(edDto.getSpecialization());
+                    edEntity.setEndingDate(edDto.getEndingDate());
+                    edEntity.setLectureEntity(lecturer);
+                    lecturer.getEducations().add(edEntity);
                 }
             }
         }
@@ -189,21 +182,6 @@ public class LectureService implements ILectureService {
     }
 
     @Override
-    public List<LectureEntity> findAllByLectureName(String lectureName) {
-        return List.of();
-    }
-
-    @Override
-    public List<LectureEntity> findAllByFacultyName(String facultyName) {
-        return List.of();
-    }
-
-    @Override
-    public List<LectureEntity> findAllByDepartmentName(String departmentName) {
-        return List.of();
-    }
-
-    @Override
     public List<LectureEntity> searchLecturers(String keyword, Long facultyId, Long departmentId) {
         String keywordPattern = null;
         if (keyword != null && !keyword.trim().isEmpty()) {
@@ -212,13 +190,4 @@ public class LectureService implements ILectureService {
         return lectureRepository.searchLecturers(keywordPattern, facultyId, departmentId);
     }
 
-    @Override
-    public BigDecimal countHoursByLectureIdForYear(Long lectureId, Integer year) {
-        return BigDecimal.ZERO;
-    }
-
-    @Override
-    public BigDecimal countCreditsByLectureIdForYear(Long lectureId, Integer year) {
-        return BigDecimal.ZERO;
-    }
 }

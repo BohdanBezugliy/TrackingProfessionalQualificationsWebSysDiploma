@@ -1,8 +1,13 @@
 package com.BezuhlyiBohdanK22_1.qualitrack.controller;
 
+import com.BezuhlyiBohdanK22_1.qualitrack.dto.DepartmentDto;
+import com.BezuhlyiBohdanK22_1.qualitrack.dto.FacultyDto;
 import com.BezuhlyiBohdanK22_1.qualitrack.dto.LectureDto;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.DepartmentEntity;
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.FacultyEntity;
+import com.BezuhlyiBohdanK22_1.qualitrack.mapper.DepartmentMapper;
+import com.BezuhlyiBohdanK22_1.qualitrack.mapper.FacultyMapper;
+import com.BezuhlyiBohdanK22_1.qualitrack.mapper.LecturerMapper;
 import com.BezuhlyiBohdanK22_1.qualitrack.service.IDepartmentService;
 import com.BezuhlyiBohdanK22_1.qualitrack.service.IFacultyService;
 import com.BezuhlyiBohdanK22_1.qualitrack.service.ILectureService;
@@ -15,6 +20,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.stream.Collectors;
+
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
@@ -24,6 +31,10 @@ public class AdminController {
     private final ILectureService lectureService;
     private final IFacultyService facultyService;
     private final IDepartmentService departmentService;
+    
+    private final FacultyMapper facultyMapper;
+    private final DepartmentMapper departmentMapper;
+    private final LecturerMapper lecturerMapper;
 
     @GetMapping("/dashboard")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
@@ -32,13 +43,14 @@ public class AdminController {
                             @RequestParam(required = false) Long departmentId,
                             Model model) {
         logger.info("Dashboard Admin - Search params: keyword={}, facultyId={}, departmentId={}", keyword, facultyId, departmentId);
-        model.addAttribute("faculties", facultyService.findAll());
-        model.addAttribute("departments", departmentService.findAll());
+        
+        model.addAttribute("faculties", facultyService.findAll().stream().map(facultyMapper::toDto).collect(Collectors.toList()));
+        model.addAttribute("departments", departmentService.findAll().stream().map(departmentMapper::toDto).collect(Collectors.toList()));
         
         if ((keyword != null && !keyword.trim().isEmpty()) || facultyId != null || departmentId != null) {
-            model.addAttribute("lecturers", lectureService.searchLecturers(keyword, facultyId, departmentId));
+            model.addAttribute("lecturers", lectureService.searchLecturers(keyword, facultyId, departmentId).stream().map(lecturerMapper::toDto).collect(Collectors.toList()));
         } else {
-            model.addAttribute("lecturers", lectureService.findAll());
+            model.addAttribute("lecturers", lectureService.findAll().stream().map(lecturerMapper::toDto).collect(Collectors.toList()));
         }
         
         return "adminDashboard";
@@ -47,15 +59,17 @@ public class AdminController {
     @GetMapping("/structure")
     public String structure(Model model) {
         logger.info("Structure Management Admin");
-        model.addAttribute("faculties", facultyService.findAll());
-        model.addAttribute("departments", departmentService.findAll());
+        model.addAttribute("faculties", facultyService.findAll().stream().map(facultyMapper::toDto).collect(Collectors.toList()));
+        model.addAttribute("departments", departmentService.findAll().stream().map(departmentMapper::toDto).collect(Collectors.toList()));
         return "facultiesAndDepartments";
     }
 
     @PostMapping("/faculty/create")
-    public String createFaculty(@ModelAttribute FacultyEntity faculty, RedirectAttributes redirectAttributes) {
-        logger.info("Create Faculty: {}", faculty.getFacultyName());
+    public String createFaculty(@ModelAttribute FacultyDto dto, RedirectAttributes redirectAttributes) {
+        logger.info("Create Faculty: {}", dto.getFacultyName());
         try {
+            FacultyEntity faculty = new FacultyEntity();
+            faculty.setFacultyName(dto.getFacultyName());
             facultyService.save(faculty);
             redirectAttributes.addFlashAttribute("successMessage", "Факультет успішно створено!");
         } catch (DataIntegrityViolationException e) {
@@ -91,10 +105,12 @@ public class AdminController {
     }
 
     @PostMapping("/department/create")
-    public String createDepartment(@ModelAttribute DepartmentEntity department, @RequestParam Long facultyId, RedirectAttributes redirectAttributes) {
-        logger.info("Create Department: {}", department.getDepartmentName());
+    public String createDepartment(@ModelAttribute DepartmentDto dto, RedirectAttributes redirectAttributes) {
+        logger.info("Create Department: {}", dto.getDepartmentName());
         try {
-            FacultyEntity faculty = facultyService.findById(facultyId);
+            DepartmentEntity department = new DepartmentEntity();
+            department.setDepartmentName(dto.getDepartmentName());
+            FacultyEntity faculty = facultyService.findById(dto.getFacultyId());
             department.setFacultyEntity(faculty);
             departmentService.save(department);
             redirectAttributes.addFlashAttribute("successMessage", "Кафедру успішно створено!");

@@ -10,7 +10,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="#">QualiTrack | Адмін</a>
+        <a class="navbar-brand" href="#">Адмін</a>
         <div class="d-flex gap-3 align-items-center">
             <a th:href="@{/admin/dashboard}" class="text-light text-decoration-none">Назад до панелі</a>
         </div>
@@ -40,13 +40,13 @@
                 <li class="list-group-item d-flex justify-content-between align-items-center" th:each="disc : ${disciplines}">
                     <div>
                         <span th:text="${disc.disciplineName}" class="fw-bold">Дисципліна</span>
-                        <span class="badge bg-secondary ms-2" th:text="${disc.upskillEvents != null ? disc.upskillEvents.size() : 0} + ' пов\'язаних документів'">0 пов'язаних документів</span>
+                        <span class="badge bg-secondary ms-2" th:text="${disc.upskillEventsCount} + ' пов\'язаних документів'">0 пов'язаних документів</span>
                     </div>
                     <div>
                         <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" th:data-bs-target="'#editDisciplineModal' + ${disc.disciplineId}">Редагувати</button>
                         <form th:action="@{/admin/disciplines/delete/{id}(id=${disc.disciplineId})}" method="post" class="d-inline">
                             <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                    th:disabled="${disc.upskillEvents != null and !disc.upskillEvents.isEmpty()}"
+                                    th:disabled="${disc.upskillEventsCount > 0}"
                                     onclick="return confirm('Ви впевнені?');">Видалити</button>
                         </form>
                     </div>

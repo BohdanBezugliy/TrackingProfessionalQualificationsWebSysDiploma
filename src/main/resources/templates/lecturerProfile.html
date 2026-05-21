@@ -10,7 +10,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="#">QualiTrack | Адмін</a>
+        <a class="navbar-brand" href="#">Адмін</a>
         <div class="d-flex gap-3 align-items-center">
             <a th:href="@{/admin/dashboard}" class="text-light text-decoration-none">Назад до панелі</a>
         </div>
@@ -59,15 +59,15 @@
                             </tr>
                             <tr>
                                 <th class="ps-0">Email</th>
-                                <td th:text="${lecturer.userEntity.email}">-</td>
+                                <td th:text="${lecturer.email}">-</td>
                             </tr>
                             <tr>
                                 <th class="ps-0">Факультет</th>
-                                <td th:text="${lecturer.departmentEntity != null ? lecturer.departmentEntity.facultyEntity.facultyName : '-'}">-</td>
+                                <td th:text="${lecturer.facultyName != null ? lecturer.facultyName : '-'}">-</td>
                             </tr>
                             <tr>
                                 <th class="ps-0">Кафедра</th>
-                                <td th:text="${lecturer.departmentEntity != null ? lecturer.departmentEntity.departmentName : '-'}">-</td>
+                                <td th:text="${lecturer.departmentName != null ? lecturer.departmentName : '-'}">-</td>
                             </tr>
                             <tr>
                                 <th class="ps-0">Науковий ступінь</th>
@@ -83,7 +83,7 @@
                             </tr>
                             <tr>
                                 <th class="ps-0">Накопичено за підвищення кваліфікації</th>
-                                <td th:text="${lecturer.getTotalHours() + ' год / ' + lecturer.getTotalEctsCredits() + ' ЄКТС'}">-</td>
+                                <td th:text="${lecturer.totalHours + ' год / ' + lecturer.totalEctsCredits + ' ЄКТС'}">-</td>
                             </tr>
                         </tbody>
                     </table>

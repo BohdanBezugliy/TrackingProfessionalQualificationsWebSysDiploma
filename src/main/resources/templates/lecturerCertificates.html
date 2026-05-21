@@ -10,7 +10,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="#">QualiTrack | Адмін</a>
+        <a class="navbar-brand" href="#">Адмін</a>
         <div class="d-flex gap-3 align-items-center">
             <a th:href="@{/admin/dashboard}" class="text-light text-decoration-none">Назад до панелі</a>
         </div>
@@ -69,8 +69,8 @@
                                     <div class="list-group list-group-flush">
                                         <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
                                            th:each="evt : ${yearEntry.value.events}"
-                                           th:data-id="${evt.upskillEventId}"
-                                           th:data-type="${evt.documentEntity.documentType}"
+                                           th:data-id="${evt.id}"
+                                           th:data-type="${evt.documentType}"
                                            th:data-number="${evt.documentNumber}"
                                            th:data-institution="${evt.institutionName}"
                                            th:data-topic="${evt.topic}"
@@ -79,13 +79,13 @@
                                            th:data-dateend="${evt.dateEnd}"
                                            th:data-ects="${evt.ectsCredits}"
                                            th:data-hours="${evt.hours}"
-                                           th:data-disciplines="${#strings.listJoin(evt.disciplines.![disciplineId], ',')}"
+                                           th:data-disciplines="${#strings.listJoin(evt.disciplineIds, ',')}"
                                            onclick="openCertificateDetails(this); return false;">
                                             <div>
                                                 <div class="fw-bold text-primary" th:text="${evt.topic}"></div>
                                                 <small class="text-muted" th:text="${evt.institutionName + ' | ' + evt.dateBegin + ' - ' + evt.dateEnd}"></small>
                                             </div>
-                                            <span class="badge bg-primary rounded-pill" th:text="${evt.documentEntity.documentType}"></span>
+                                            <span class="badge bg-primary rounded-pill" th:text="${evt.documentType}"></span>
                                         </a>
                                     </div>
                                 </div>
@@ -97,7 +97,7 @@
         </div>
         
         <div th:if="${#maps.isEmpty(groupedEvents)}" class="alert alert-info text-center">
-            Немає сертифікатів або вони не прив'язані до дисциплін.
+            Немає сертифікатів.
         </div>
     </div>
 </div>

@@ -2,7 +2,7 @@ package com.BezuhlyiBohdanK22_1.qualitrack.service;
 
 import com.BezuhlyiBohdanK22_1.qualitrack.entity.LectureEntity;
 import com.BezuhlyiBohdanK22_1.qualitrack.dto.LectureDto;
-import java.math.BigDecimal;
+
 import java.util.List;
 
 public interface ILectureService {
@@ -10,14 +10,11 @@ public interface ILectureService {
     void saveLecturer(LectureDto dto);
     List<LectureEntity> findAll();
     void save(LectureEntity lectureEntity);
-    void delete(LectureEntity lectureEntity);
+
     void deleteLecturerById(Long lectureId);
-    void updateProfile(Long lectureId, com.BezuhlyiBohdanK22_1.qualitrack.dto.LecturerUpdateDto dto);
+    void updateProfile(Long lectureId, com.BezuhlyiBohdanK22_1.qualitrack.dto.LecturerDto dto);
     void updatePassword(Long lectureId, String newPassword);
-    List<LectureEntity> findAllByLectureName(String lectureName);
-    List<LectureEntity> findAllByFacultyName(String facultyName);
-    List<LectureEntity> findAllByDepartmentName(String departmentName);
+
     List<LectureEntity> searchLecturers(String keyword, Long facultyId, Long departmentId);
-    BigDecimal countHoursByLectureIdForYear(Long lectureId, Integer year);
-    BigDecimal countCreditsByLectureIdForYear(Long lectureId, Integer year);
+
 }

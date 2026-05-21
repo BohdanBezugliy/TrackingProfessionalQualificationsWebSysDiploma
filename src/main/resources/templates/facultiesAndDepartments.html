@@ -11,7 +11,7 @@
 <!-- Навігаційна панель -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
   <div class="container">
-    <a class="navbar-brand" href="#">QualiTrack | Адмін</a>
+    <a class="navbar-brand" href="#">Адмін</a>
     <div class="d-flex gap-3 align-items-center">
       <a th:href="@{/admin/dashboard}" class="text-light text-decoration-none">Назад до панелі</a>
       <form th:action="@{/logout}" method="post" class="mb-0">
@@ -95,7 +95,7 @@
               <div class="d-flex justify-content-between align-items-start">
                 <div>
                   <div class="fw-bold" th:text="${dep.departmentName}">Кафедра</div>
-                  <small class="text-muted" th:text="${dep.facultyEntity.facultyName}">Факультет</small>
+                  <small class="text-muted" th:text="${dep.facultyName}">Факультет</small>
                 </div>
                 <div>
                   <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" th:data-bs-target="'#editDepartmentModal' + ${dep.departmentId}">Редагувати</button>
@@ -118,7 +118,7 @@
                         <div class="mb-3">
                           <label class="form-label">Факультет <span class="text-danger">*</span></label>
                           <select class="form-select" name="facultyId" required>
-                            <option th:each="fac : ${faculties}" th:value="${fac.facultyId}" th:text="${fac.facultyName}" th:selected="${fac.facultyId == dep.facultyEntity.facultyId}"></option>
+                            <option th:each="fac : ${faculties}" th:value="${fac.facultyId}" th:text="${fac.facultyName}" th:selected="${fac.facultyId == dep.facultyId}"></option>
                           </select>
                         </div>
                         <div class="mb-3">

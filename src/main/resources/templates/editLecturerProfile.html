@@ -10,7 +10,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="#">QualiTrack | Адмін</a>
+        <a class="navbar-brand" href="#">Адмін</a>
         <div class="d-flex gap-3 align-items-center">
             <a th:href="@{/admin/dashboard}" class="text-light text-decoration-none">Назад до панелі</a>
         </div>
@@ -53,7 +53,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" name="email" th:value="${lecturer.userEntity.email}" required>
+                            <input type="email" class="form-control" name="email" th:value="${lecturer.email}" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Дата початку роботи <span class="text-danger">*</span></label>
@@ -62,7 +62,7 @@
                         <div class="mb-3">
                             <label class="form-label">Кафедра <span class="text-danger">*</span></label>
                             <select class="form-select" name="departmentId" required>
-                                <option th:each="dep : ${departments}" th:value="${dep.departmentId}" th:text="${dep.departmentName + ' (' + dep.facultyEntity.facultyName + ')'}" th:selected="${dep.departmentId == lecturer.departmentEntity.departmentId}"></option>
+                                <option th:each="dep : ${departments}" th:value="${dep.departmentId}" th:text="${dep.departmentName + ' (' + dep.facultyName + ')'}" th:selected="${dep.departmentId == lecturer.departmentId}"></option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -170,20 +170,18 @@
         if (profileForm) {
             profileForm.addEventListener('submit', function(e) {
                 let errors = [];
-                const hireDate = new Date(profileForm.querySelector('[name="hireDate"]').value);
+                const hireDateStr = profileForm.querySelector('[name="hireDate"]').value;
                 const today = new Date();
+                const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
                 
-                if (hireDate > today) {
+                if (hireDateStr && hireDateStr > todayStr) {
                     errors.push("Дата початку роботи не може бути в майбутньому.");
                 }
                 
                 const eduDates = profileForm.querySelectorAll('input[type="date"][name^="educations"]');
                 eduDates.forEach(dateInput => {
-                    if (dateInput.value) {
-                        const edDate = new Date(dateInput.value);
-                        if (edDate > today) {
-                            errors.push("Дата завершення освіти не може бути в майбутньому.");
-                        }
+                    if (dateInput.value && dateInput.value > todayStr) {
+                        errors.push("Дата завершення освіти не може бути в майбутньому.");
                     }
                 });
                 
@@ -217,7 +215,7 @@
                 emptyTemplate.removeAttribute('id'); // no longer the empty template
             }
 
-            const items = container.querySelectorAll(".education-item");
+            const items = eduContainer.querySelectorAll(".education-item");
             const template = items[items.length - 1]; // clone last item
             const newItem = template.cloneNode(true);
             
@@ -235,14 +233,14 @@
             // Show remove button
             const removeBtn = newItem.querySelector(".remove-edu-btn");
             if(removeBtn) removeBtn.style.display = "block";
-            
-            container.appendChild(newItem);
+
+            eduContainer.appendChild(newItem);
             currentIndex++;
             updateRemoveButtons();
         });
         
         function updateRemoveButtons() {
-            const items = container.querySelectorAll(".education-item");
+            const items = eduContainer.querySelectorAll(".education-item");
             items.forEach((item, index) => {
                 const removeBtn = item.querySelector(".remove-edu-btn");
                 if (removeBtn) {
@@ -252,11 +250,11 @@
         }
 
         // Event delegation for remove buttons
-        container.addEventListener('click', function(e) {
+        eduContainer.addEventListener('click', function(e) {
             if (e.target && e.target.classList.contains('remove-edu-btn')) {
                 const item = e.target.closest('.education-item');
                 // if it's the last one, just clear the inputs instead of removing
-                if (container.querySelectorAll('.education-item').length === 1) {
+                if (eduContainer.querySelectorAll('.education-item').length === 1) {
                     const inputs = item.querySelectorAll('input');
                     inputs.forEach(i => {
                         i.value = '';
@@ -265,7 +263,7 @@
                     e.target.style.display = 'none';
                     item.id = 'emptyTemplate';
                 } else {
-                    container.removeChild(item);
+                    eduContainer.removeChild(item);
                 }
             }
         });
