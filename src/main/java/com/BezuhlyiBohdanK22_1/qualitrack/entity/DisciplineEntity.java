@@ -22,4 +22,7 @@ public class DisciplineEntity {
     @Size(max = 255)
     @Column(name = "discipline_name")
     private String disciplineName;
+
+    @ManyToMany(mappedBy = "disciplines")
+    private java.util.List<UpskillEventEntity> upskillEvents;
 }

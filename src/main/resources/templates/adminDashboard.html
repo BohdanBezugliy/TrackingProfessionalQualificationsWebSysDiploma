@@ -129,7 +129,6 @@
                 <th>Факультет</th>
                 <th>Кафедра</th>
                 <th>Email</th>
-                <th>Години / ЄКТС</th>
               </tr>
             </thead>
             <tbody>
@@ -150,8 +149,6 @@
                 </td>
 
                 <td th:text="${lecturer.userEntity.email}">ivanenko@example.com</td>
-
-                <td class="pe-4" th:text="${lecturer.getTotalHours() + ' год / ' + lecturer.getTotalEctsCredits() + ' ЄКТС'}">0 год / 0 ЄКТС</td>
               </tr>
 
               <tr th:if="${#lists.isEmpty(lecturers)}">
@@ -192,7 +189,13 @@
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Пароль <span class="text-danger">*</span></label>
-                <input type="password" class="form-control" name="userRegistrationDto.password" required>
+                <input type="password" class="form-control" name="userRegistrationDto.password" 
+                       required 
+                       pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,20}$"
+                       title="Пароль має містити від 8 до 20 символів, щонайменше одну велику літеру, одну малу літеру та одну цифру.">
+                <div class="form-text text-muted" style="font-size: 0.8em;">
+                    Від 8 до 20 символів. Мінімум 1 велика літера, 1 мала та 1 цифра.
+                </div>
               </div>
             </div>
 

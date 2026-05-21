@@ -66,7 +66,8 @@ public class UpskillEventEntity {
 
     @AssertTrue()
     private boolean isDateRangeValid() {
-        return dateEnd.isAfter(dateBegin);
+        if (dateBegin == null || dateEnd == null || dateReceived == null) return true;
+        return !dateEnd.isBefore(dateBegin) && !dateReceived.isBefore(dateEnd);
     }
 
     @Column(name = "document_number")

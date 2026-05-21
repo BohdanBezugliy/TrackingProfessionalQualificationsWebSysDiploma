@@ -63,7 +63,7 @@
                       <div class="modal-body">
                         <div class="mb-3">
                           <label class="form-label">Назва факультету</label>
-                          <input type="text" class="form-control" name="facultyName" th:value="${fac.facultyName}" required>
+                          <input type="text" class="form-control" name="facultyName" th:value="${fac.facultyName}" required minlength="2" maxlength="255">
                         </div>
                       </div>
                       <div class="modal-footer">

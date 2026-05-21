@@ -27,8 +27,9 @@
         <h2 class="h4 mb-0" th:text="${'Редагування профілю: ' + lecturer.lastName + ' ' + lecturer.firstName}"></h2>
         <a th:href="@{/admin/lecturer/{id}/profile(id=${lecturer.lectureId})}" class="btn btn-outline-secondary">Скасувати</a>
     </div>
+    <div class="alert alert-danger d-none mb-4" id="profileErrorAlert"></div>
 
-    <form th:action="@{/admin/lecturer/{id}/profile/update(id=${lecturer.lectureId})}" method="post">
+    <form id="editProfileForm" th:action="@{/admin/lecturer/{id}/profile/update(id=${lecturer.lectureId})}" method="post">
         
         <div class="row">
             <!-- Основна інформація -->
@@ -56,7 +57,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Дата початку роботи <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" name="hireDate" th:value="${lecturer.hireDate}" required>
+                            <input type="date" class="form-control" name="hireDate" th:value="${lecturer.hireDate}" required th:max="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Кафедра <span class="text-danger">*</span></label>
@@ -100,7 +101,7 @@
                             </div>
                             <div class="mb-2">
                                 <label class="form-label small">Дата завершення <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control form-control-sm" th:name="'educations[' + ${iterStat.index} + '].endingDate'" th:value="${edu.endingDate}" required>
+                                <input type="date" class="form-control form-control-sm" th:name="'educations[' + ${iterStat.index} + '].endingDate'" th:value="${edu.endingDate}" required th:max="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
                             </div>
                         </div>
 
@@ -119,7 +120,7 @@
                             </div>
                             <div class="mb-2">
                                 <label class="form-label small">Дата завершення <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control form-control-sm" name="educations[0].endingDate">
+                                <input type="date" class="form-control form-control-sm" name="educations[0].endingDate" th:max="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
                             </div>
                         </div>
 
@@ -142,7 +143,13 @@
             <form th:action="@{/admin/lecturer/{id}/profile/password(id=${lecturer.lectureId})}" method="post" class="row align-items-end">
                 <div class="col-md-6 mb-3 mb-md-0">
                     <label class="form-label">Новий пароль <span class="text-danger">*</span></label>
-                    <input type="password" class="form-control" name="newPassword" required minlength="6">
+                    <input type="password" class="form-control" name="newPassword" 
+                           required 
+                           pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,20}$"
+                           title="Пароль має містити від 8 до 20 символів, щонайменше одну велику літеру, одну малу літеру та одну цифру.">
+                    <div class="form-text text-muted" style="font-size: 0.8em;">
+                        Від 8 до 20 символів. Мінімум 1 велика літера, 1 мала та 1 цифра.
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <button type="submit" class="btn btn-warning">Змінити пароль</button>
@@ -155,8 +162,41 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const container = document.getElementById("educationContainer");
+        const eduContainer = document.getElementById('educationContainer');
         const addBtn = document.getElementById("addEducationBtn");
+        const profileForm = document.getElementById('editProfileForm');
+        const profileErrorAlert = document.getElementById('profileErrorAlert');
+        
+        if (profileForm) {
+            profileForm.addEventListener('submit', function(e) {
+                let errors = [];
+                const hireDate = new Date(profileForm.querySelector('[name="hireDate"]').value);
+                const today = new Date();
+                
+                if (hireDate > today) {
+                    errors.push("Дата початку роботи не може бути в майбутньому.");
+                }
+                
+                const eduDates = profileForm.querySelectorAll('input[type="date"][name^="educations"]');
+                eduDates.forEach(dateInput => {
+                    if (dateInput.value) {
+                        const edDate = new Date(dateInput.value);
+                        if (edDate > today) {
+                            errors.push("Дата завершення освіти не може бути в майбутньому.");
+                        }
+                    }
+                });
+                
+                if (errors.length > 0) {
+                    e.preventDefault();
+                    profileErrorAlert.innerHTML = Array.from(new Set(errors)).join("<br>");
+                    profileErrorAlert.classList.remove("d-none");
+                    profileErrorAlert.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                } else {
+                    profileErrorAlert.classList.add("d-none");
+                }
+            });
+        }
         
         let currentIndex = document.querySelectorAll('.education-item').length;
 

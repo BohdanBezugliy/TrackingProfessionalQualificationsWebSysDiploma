@@ -9,6 +9,7 @@ import com.BezuhlyiBohdanK22_1.qualitrack.service.ILectureService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -54,56 +55,80 @@ public class AdminController {
     @PostMapping("/faculty/create")
     public String createFaculty(@ModelAttribute FacultyEntity faculty, RedirectAttributes redirectAttributes) {
         logger.info("Create Faculty: {}", faculty.getFacultyName());
-        facultyService.save(faculty);
-        redirectAttributes.addFlashAttribute("successMessage", "Факультет успішно створено!");
+        try {
+            facultyService.save(faculty);
+            redirectAttributes.addFlashAttribute("successMessage", "Факультет успішно створено!");
+        } catch (DataIntegrityViolationException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка збереження! Можливо, такий факультет вже існує.");
+        }
         return "redirect:/admin/structure";
     }
 
     @PostMapping("/faculty/update/{id}")
     public String updateFaculty(@PathVariable Long id, @RequestParam String facultyName, RedirectAttributes redirectAttributes) {
         logger.info("Update Faculty: {}", id);
-        FacultyEntity faculty = facultyService.findById(id);
-        faculty.setFacultyName(facultyName);
-        facultyService.save(faculty);
-        redirectAttributes.addFlashAttribute("successMessage", "Факультет успішно оновлено!");
+        try {
+            FacultyEntity faculty = facultyService.findById(id);
+            faculty.setFacultyName(facultyName);
+            facultyService.save(faculty);
+            redirectAttributes.addFlashAttribute("successMessage", "Факультет успішно оновлено!");
+        } catch (DataIntegrityViolationException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка збереження! Можливо, такий факультет вже існує.");
+        }
         return "redirect:/admin/structure";
     }
 
     @PostMapping("/faculty/delete/{id}")
     public String deleteFaculty(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         logger.info("Delete Faculty: {}", id);
-        facultyService.deleteById(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Факультет успішно видалено!");
+        try {
+            facultyService.deleteById(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Факультет успішно видалено!");
+        } catch (DataIntegrityViolationException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Не неможливо видалити факультет, оскільки до нього прив'язані кафедри або викладачі!");
+        }
         return "redirect:/admin/structure";
     }
 
     @PostMapping("/department/create")
     public String createDepartment(@ModelAttribute DepartmentEntity department, @RequestParam Long facultyId, RedirectAttributes redirectAttributes) {
         logger.info("Create Department: {}", department.getDepartmentName());
-        FacultyEntity faculty = facultyService.findById(facultyId);
-        department.setFacultyEntity(faculty);
-        departmentService.save(department);
-        redirectAttributes.addFlashAttribute("successMessage", "Кафедру успішно створено!");
+        try {
+            FacultyEntity faculty = facultyService.findById(facultyId);
+            department.setFacultyEntity(faculty);
+            departmentService.save(department);
+            redirectAttributes.addFlashAttribute("successMessage", "Кафедру успішно створено!");
+        } catch (DataIntegrityViolationException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка збереження! Можливо, така кафедра вже існує.");
+        }
         return "redirect:/admin/structure";
     }
 
     @PostMapping("/department/update/{id}")
     public String updateDepartment(@PathVariable Long id, @RequestParam String departmentName, @RequestParam Long facultyId, RedirectAttributes redirectAttributes) {
         logger.info("Update Department: {}", id);
-        DepartmentEntity department = departmentService.findById(id);
-        department.setDepartmentName(departmentName);
-        FacultyEntity faculty = facultyService.findById(facultyId);
-        department.setFacultyEntity(faculty);
-        departmentService.save(department);
-        redirectAttributes.addFlashAttribute("successMessage", "Кафедру успішно оновлено!");
+        try {
+            DepartmentEntity department = departmentService.findById(id);
+            department.setDepartmentName(departmentName);
+            FacultyEntity faculty = facultyService.findById(facultyId);
+            department.setFacultyEntity(faculty);
+            departmentService.save(department);
+            redirectAttributes.addFlashAttribute("successMessage", "Кафедру успішно оновлено!");
+        } catch (DataIntegrityViolationException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка збереження! Можливо, така кафедра вже існує.");
+        }
         return "redirect:/admin/structure";
     }
 
     @PostMapping("/department/delete/{id}")
     public String deleteDepartment(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         logger.info("Delete Department: {}", id);
-        departmentService.deleteById(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Кафедру успішно видалено!");
+        try {
+            departmentService.deleteById(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Кафедру успішно видалено!");
+        } catch (DataIntegrityViolationException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Не неможливо видалити кафедру, оскільки до неї прив'язані викладачі!");
+        }
         return "redirect:/admin/structure";
     }
 
