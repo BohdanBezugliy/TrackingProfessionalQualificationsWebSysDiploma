@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генерація звітів</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .report-table th {
+            background-color: #f8f9fa;
+            vertical-align: middle;
+        }
+        .report-table td {
+            vertical-align: top;
+            white-space: pre-wrap;
+        }
+        .division-header {
+            background-color: #e9ecef !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="#">Адмін</a>
+        <div class="d-flex gap-3 align-items-center">
+            <a th:href="@{/admin/dashboard}" class="text-light text-decoration-none">Назад до панелі</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5 mb-5">
+    <h2 class="mb-4">Звіти про підвищення кваліфікації</h2>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form id="reportForm" onsubmit="return false;">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Рівень звіту</label>
+                        <select class="form-select" name="level" id="levelSelect" onchange="toggleSelectors()">
+                            <option value="UNIVERSITY">По університету</option>
+                            <option value="FACULTY">По факультету</option>
+                            <option value="DEPARTMENT">По кафедрі</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4 d-none" id="facultyContainer">
+                        <label class="form-label fw-bold">Факультет</label>
+                        <select class="form-select" name="facultyId" id="facultySelect">
+                            <option th:each="f : ${faculties}" th:value="${f.facultyId}" th:text="${f.facultyName}"></option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4 d-none" id="departmentContainer">
+                        <label class="form-label fw-bold">Кафедра</label>
+                        <select class="form-select" name="departmentId" id="departmentSelect">
+                            <option th:each="d : ${departments}" th:value="${d.departmentId}" th:text="${d.departmentName}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Рік з (включно)</label>
+                        <input type="number" class="form-control" name="yearFrom" id="yearFrom" placeholder="Напр. 2020">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Рік по (включно)</label>
+                        <input type="number" class="form-control" name="yearTo" id="yearTo" placeholder="Напр. 2024">
+                    </div>
+                </div>
+                
+                <div id="validationError" class="alert alert-danger d-none"></div>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary" onclick="loadReport()">
+                        <i class="bi bi-table"></i> Переглянути таблицю
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="downloadFile('pdf')">
+                        <i class="bi bi-file-earmark-pdf"></i> Завантажити PDF
+                    </button>
+                    <button type="button" class="btn btn-outline-success" onclick="downloadFile('xlsx')">
+                        <i class="bi bi-file-earmark-excel"></i> Завантажити XLSX
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Container for AJAX loaded table -->
+    <div id="reportContainer">
+        <!-- Rendered Fragment will be placed here -->
+        <div th:fragment="reportTable" th:if="${reportData != null}">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="mb-3">Результати звіту</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered report-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%">ПІБ</th>
+                                    <th style="width: 15%">Посада</th>
+                                    <th style="width: 25%">Освіта</th>
+                                    <th style="width: 15%">Академічна інформація</th>
+                                    <th style="width: 30%">Підвищення кваліфікації</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <th:block th:if="${#lists.isEmpty(reportData)}">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">Немає даних за обраними критеріями</td>
+                                    </tr>
+                                </th:block>
+                                
+                                <th:block th:unless="${#maps.isEmpty(groupedData)}">
+                                    <th:block th:each="entry : ${groupedData}">
+                                        <tr class="division-header">
+                                            <td colspan="5" th:text="${'Підрозділ: ' + entry.key}"></td>
+                                        </tr>
+                                        <tr th:each="row : ${entry.value}">
+                                            <td class="fw-bold" th:text="${row.fullName}"></td>
+                                            <td th:text="${row.position}"></td>
+                                            <td th:text="${row.educationDetails}"></td>
+                                            <td th:text="${row.academicInfo}"></td>
+                                            <td th:text="${row.upskillingDetails}"></td>
+                                        </tr>
+                                    </th:block>
+                                </th:block>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script th:inline="javascript">
+    function toggleSelectors() {
+        const level = document.getElementById('levelSelect').value;
+        const facContainer = document.getElementById('facultyContainer');
+        const depContainer = document.getElementById('departmentContainer');
+        
+        if (level === 'UNIVERSITY') {
+            facContainer.classList.add('d-none');
+            depContainer.classList.add('d-none');
+        } else if (level === 'FACULTY') {
+            facContainer.classList.remove('d-none');
+            depContainer.classList.add('d-none');
+        } else if (level === 'DEPARTMENT') {
+            facContainer.classList.add('d-none');
+            depContainer.classList.remove('d-none');
+        }
+    }
+
+    function validateDates() {
+        const yFrom = document.getElementById('yearFrom').value;
+        const yTo = document.getElementById('yearTo').value;
+        const errAlert = document.getElementById('validationError');
+        
+        if (yFrom && yTo) {
+            if (parseInt(yFrom) > parseInt(yTo)) {
+                errAlert.textContent = "Рік 'з' не може бути більшим за рік 'по'.";
+                errAlert.classList.remove('d-none');
+                return false;
+            }
+        }
+        errAlert.classList.add('d-none');
+        return true;
+    }
+
+    function buildQueryString() {
+        const level = document.getElementById('levelSelect').value;
+        const facultyId = document.getElementById('facultySelect').value;
+        const departmentId = document.getElementById('departmentSelect').value;
+        const yearFrom = document.getElementById('yearFrom').value;
+        const yearTo = document.getElementById('yearTo').value;
+        
+        let qs = `?level=${level}`;
+        if (level === 'FACULTY' && facultyId) qs += `&facultyId=${facultyId}`;
+        if (level === 'DEPARTMENT' && departmentId) qs += `&departmentId=${departmentId}`;
+        if (yearFrom) qs += `&yearFrom=${yearFrom}`;
+        if (yearTo) qs += `&yearTo=${yearTo}`;
+        
+        return qs;
+    }
+
+    function loadReport() {
+        if (!validateDates()) return;
+        
+        const qs = buildQueryString();
+        const container = document.getElementById('reportContainer');
+        container.innerHTML = '<div class="text-center my-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Завантаження...</p></div>';
+        
+        fetch(`/admin/reports/view${qs}`)
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+            })
+            .catch(err => {
+                container.innerHTML = `<div class="alert alert-danger">Помилка завантаження звіту: ${err}</div>`;
+            });
+    }
+
+    function downloadFile(type) {
+        if (!validateDates()) return;
+        const qs = buildQueryString();
+        window.location.href = `/admin/reports/${type}${qs}`;
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

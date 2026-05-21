@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Звіт про підвищення кваліфікації</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+        }
+        body {
+            font-family: "Roboto", sans-serif;
+            font-size: 10pt;
+        }
+        h1 {
+            text-align: center;
+            font-size: 14pt;
+        }
+        .report-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 5px;
+            vertical-align: top;
+            word-wrap: break-word;
+        }
+        th {
+            background-color: #f2f2f2;
+            text-align: center;
+            font-weight: bold;
+        }
+        .col-name { width: 15%; }
+        .col-pos { width: 15%; }
+        .col-edu { width: 25%; }
+        .col-acad { width: 15%; }
+        .col-up { width: 30%; }
+        
+        .division-header {
+            background-color: #d9d9d9;
+            font-weight: bold;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Звіт про підвищення кваліфікації</h1>
+    <div class="report-info">
+        <p>
+            Рівень: 
+            <span th:if="${level == 'UNIVERSITY'}">По університету</span>
+            <span th:if="${level == 'FACULTY'}">По факультету</span>
+            <span th:if="${level == 'DEPARTMENT'}">По кафедрі</span>
+        </p>
+        <p th:if="${yearFrom != null or yearTo != null}">
+            Період: 
+            <span th:if="${yearFrom != null}" th:text="'З ' + ${yearFrom} + ' '"></span>
+            <span th:if="${yearTo != null}" th:text="'По ' + ${yearTo}"></span>
+        </p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="col-name">ПІБ</th>
+                <th class="col-pos">Посада</th>
+                <th class="col-edu">Освіта</th>
+                <th class="col-acad">Академічна інформація</th>
+                <th class="col-up">Підвищення кваліфікації</th>
+            </tr>
+        </thead>
+        <tbody>
+            <th:block th:unless="${#maps.isEmpty(groupedData)}">
+                <th:block th:each="entry : ${groupedData}">
+                    <tr class="division-header">
+                        <td colspan="5" th:text="${'Підрозділ: ' + entry.key}"></td>
+                    </tr>
+                    <tr th:each="row : ${entry.value}">
+                        <td th:text="${row.fullName}"></td>
+                        <td th:text="${row.position}"></td>
+                        <td th:text="${row.educationDetails}"></td>
+                        <td th:text="${row.academicInfo}"></td>
+                        <td th:text="${row.upskillingDetails}"></td>
+                    </tr>
+                </th:block>
+            </th:block>
+        </tbody>
+    </table>
+
+</body>
+</html>
