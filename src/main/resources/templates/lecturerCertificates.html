@@ -12,6 +12,7 @@
     <div class="container">
         <a class="navbar-brand" href="#">Адмін</a>
         <div class="d-flex gap-3 align-items-center">
+            <a th:href="@{/admin/lecturer/{id}/profile(id=${lecturer.lectureId})}" class="btn btn-outline-light btn-sm">Назад до профілю викладача</a>
             <a th:href="@{/admin/dashboard}" class="text-light text-decoration-none">Назад до панелі</a>
         </div>
     </div>
@@ -30,6 +31,33 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <h2 class="h4 mb-0" th:text="${'Документи про підвищення кваліфікації: ' + lecturer.lastName + ' ' + lecturer.firstName}"></h2>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">+ Додати подію підвищення кваліфікації</button>
+    </div>
+
+    <!-- Калькулятор годин та кредитів -->
+    <div class="card mb-4 shadow-sm border-0 bg-white">
+        <div class="card-body">
+            <h5 class="card-title text-primary mb-3"><i class="bi bi-calculator"></i> Підрахунок обсягу за період</h5>
+            <div class="row align-items-end">
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <label class="form-label text-muted small">Рік з (включно)</label>
+                    <input type="number" id="calcYearFrom" class="form-control" placeholder="Напр. 2020">
+                </div>
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <label class="form-label text-muted small">Рік по (включно)</label>
+                    <input type="number" id="calcYearTo" class="form-control" placeholder="Напр. 2024">
+                </div>
+                <div class="col-md-2 mb-3 mb-md-0">
+                    <button class="btn btn-outline-primary w-100" onclick="calculatePeriodTotals()">Підрахувати</button>
+                </div>
+                <div class="col-md-4">
+                    <div id="calcResultBox" class="p-2 rounded bg-light border text-center d-none">
+                        <span class="fw-bold" id="calcHoursRes">0</span> год / 
+                        <span class="fw-bold" id="calcEctsRes">0</span> ЄКТС
+                    </div>
+                </div>
+            </div>
+            <div id="calcErrorAlert" class="alert alert-warning mt-3 mb-0 d-none py-2" role="alert"></div>
+        </div>
     </div>
 
     <div class="accordion" id="disciplinesAccordion">
@@ -582,6 +610,62 @@
             });
         }
     });
+
+    function calculatePeriodTotals() {
+        const yearFromInput = document.getElementById("calcYearFrom").value;
+        const yearToInput = document.getElementById("calcYearTo").value;
+        const errorAlert = document.getElementById("calcErrorAlert");
+        const resultBox = document.getElementById("calcResultBox");
+        const hoursRes = document.getElementById("calcHoursRes");
+        const ectsRes = document.getElementById("calcEctsRes");
+
+        errorAlert.classList.add("d-none");
+        resultBox.classList.add("d-none");
+
+        if (!yearFromInput || !yearToInput) {
+            errorAlert.textContent = "Будь ласка, вкажіть обидва роки (з та по).";
+            errorAlert.classList.remove("d-none");
+            return;
+        }
+
+        const yearFrom = parseInt(yearFromInput);
+        const yearTo = parseInt(yearToInput);
+
+        if (yearFrom > yearTo) {
+            errorAlert.textContent = "Неправильний діапазон: рік початку (з) не може бути більшим за рік завершення (по).";
+            errorAlert.classList.remove("d-none");
+            return;
+        }
+
+        let totalHours = 0;
+        let totalEcts = 0.0;
+        
+        // Find all event items.
+        // Use a Set to prevent double-counting events attached to multiple disciplines.
+        const eventElements = document.querySelectorAll(".list-group-item[data-id]");
+        const processedEventIds = new Set();
+
+        eventElements.forEach(el => {
+            const id = el.getAttribute("data-id");
+            if (processedEventIds.has(id)) return;
+            
+            const dateEndStr = el.getAttribute("data-dateend");
+            if (dateEndStr) {
+                const year = parseInt(dateEndStr.substring(0, 4));
+                if (year >= yearFrom && year <= yearTo) {
+                    processedEventIds.add(id);
+                    const hours = parseInt(el.getAttribute("data-hours")) || 0;
+                    const ects = parseFloat(el.getAttribute("data-ects")) || 0.0;
+                    totalHours += hours;
+                    totalEcts += ects;
+                }
+            }
+        });
+
+        hoursRes.textContent = totalHours;
+        ectsRes.textContent = totalEcts.toFixed(1).replace('.0', '');
+        resultBox.classList.remove("d-none");
+    }
 </script>
 </body>
 </html>
