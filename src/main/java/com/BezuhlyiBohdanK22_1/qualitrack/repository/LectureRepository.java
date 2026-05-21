@@ -6,8 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
+import java.util.Optional;
 
 public interface LectureRepository extends JpaRepository<LectureEntity, Long> {
+
+    @Query("SELECT l FROM LectureEntity l WHERE l.userEntity.email = :email")
+    Optional<LectureEntity> findByUserEmail(@Param("email") String email);
 
     @Query("SELECT l FROM LectureEntity l WHERE " +
            "(:keywordPattern IS NULL OR LOWER(l.firstName) LIKE :keywordPattern " +

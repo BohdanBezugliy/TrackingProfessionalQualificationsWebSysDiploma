@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Особистий кабінет</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="#">Мій профіль</a>
+        <div class="d-flex">
+            <form th:action="@{/logout}" method="post">
+                <button class="btn btn-outline-light btn-sm" type="submit">Вийти з системи</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Шапка з кнопками -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <h2 class="h4 mb-0" th:text="${'Викладач: ' + lecturer.lastName + ' ' + lecturer.firstName}"></h2>
+        <div class="d-flex flex-wrap gap-2">
+            <a th:href="@{/user/certificates}" class="btn btn-info text-white shadow-sm">Мої підвищення кваліфікації</a>
+            <a th:href="@{/user/profile/edit}" class="btn btn-primary shadow-sm">Редагувати особисті дані</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Основна інформація -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Особиста інформація</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="ps-0" style="width: 40%;">Прізвище</th>
+                                <td th:text="${lecturer.lastName}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Ім'я</th>
+                                <td th:text="${lecturer.firstName}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">По батькові</th>
+                                <td th:text="${lecturer.middleName != null ? lecturer.middleName : '-'}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Email</th>
+                                <td th:text="${lecturer.email}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Факультет</th>
+                                <td th:text="${lecturer.facultyName != null ? lecturer.facultyName : '-'}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Кафедра</th>
+                                <td th:text="${lecturer.departmentName != null ? lecturer.departmentName : '-'}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Науковий ступінь</th>
+                                <td th:text="${lecturer.academicDegree != null && !lecturer.academicDegree.isEmpty() ? lecturer.academicDegree : '-'}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Вчене звання</th>
+                                <td th:text="${lecturer.academicRank != null && !lecturer.academicRank.isEmpty() ? lecturer.academicRank : '-'}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Дата початку роботи</th>
+                                <td th:text="${lecturer.hireDate}">-</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">Накопичено за підвищення кваліфікації</th>
+                                <td th:text="${lecturer.totalHours + ' год / ' + lecturer.totalEctsCredits + ' ЄКТС'}">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Освіта -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Освіта</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush" th:if="${lecturer.educations != null and !lecturer.educations.isEmpty()}">
+                        <li class="list-group-item p-3" th:each="edu : ${lecturer.educations}">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="mb-0 fw-bold" th:text="${edu.institutionName}">Університет</h6>
+                                <span class="badge bg-secondary" th:text="${edu.endingDate}">2014-06-30</span>
+                            </div>
+                            <p class="mb-0 text-muted" th:text="${'Спеціальність: ' + edu.specialization}">Спеціальність</p>
+                        </li>
+                    </ul>
+                    <div class="p-4 text-center text-muted" th:if="${lecturer.educations == null or lecturer.educations.isEmpty()}">
+                        Дані про освіту відсутні
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
