@@ -83,15 +83,15 @@ public class ExportService {
 
             // Create Headers
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"ПІБ", "Посада", "Підрозділ", "Освіта", "Академічна інформація", "Підвищення кваліфікації"};
+            String[] headers = {"ПІБ", "Посада", "Освіта", "Академічна інформація", "Підвищення кваліфікації"};
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
                 cell.setCellStyle(headerStyle);
                 sheet.setColumnWidth(i, 256 * 20); // Base width
             }
-            sheet.setColumnWidth(3, 256 * 40); // Education
-            sheet.setColumnWidth(5, 256 * 50); // Upskilling
+            sheet.setColumnWidth(2, 256 * 40); // Education
+            sheet.setColumnWidth(4, 256 * 50); // Upskilling
 
             int rowIdx = 1;
             
@@ -121,10 +121,9 @@ public class ExportService {
                 Row row = sheet.createRow(rowIdx++);
                 Cell c0 = row.createCell(0); c0.setCellValue(dto.getFullName()); c0.setCellStyle(dataStyle);
                 Cell c1 = row.createCell(1); c1.setCellValue(dto.getPosition()); c1.setCellStyle(dataStyle);
-                Cell c2 = row.createCell(2); c2.setCellValue(div); c2.setCellStyle(dataStyle);
-                Cell c3 = row.createCell(3); c3.setCellValue(dto.getEducationDetails()); c3.setCellStyle(dataStyle);
-                Cell c4 = row.createCell(4); c4.setCellValue(dto.getAcademicInfo()); c4.setCellStyle(dataStyle);
-                Cell c5 = row.createCell(5); c5.setCellValue(dto.getUpskillingDetails()); c5.setCellStyle(dataStyle);
+                Cell c2 = row.createCell(2); c2.setCellValue(dto.getEducationDetails()); c2.setCellStyle(dataStyle);
+                Cell c3 = row.createCell(3); c3.setCellValue(dto.getAcademicInfo()); c3.setCellStyle(dataStyle);
+                Cell c4 = row.createCell(4); c4.setCellValue(dto.getUpskillingDetails()); c4.setCellStyle(dataStyle);
             }
 
             workbook.write(out);
