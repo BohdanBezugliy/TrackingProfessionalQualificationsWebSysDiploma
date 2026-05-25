@@ -1,0 +1,11 @@
+package com.BezuhlyiBohdanK22_1.trackingProfessionalQualificationsWebSys.service;
+
+import com.BezuhlyiBohdanK22_1.trackingProfessionalQualificationsWebSys.entity.DepartmentEntity;
+import java.util.List;
+
+public interface IDepartmentService {
+    List<DepartmentEntity> findAll();
+    DepartmentEntity findById(Long id);
+    DepartmentEntity save(DepartmentEntity departmentEntity);
+    void deleteById(Long id);
+}

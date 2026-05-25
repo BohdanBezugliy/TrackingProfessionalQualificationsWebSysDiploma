@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.BezuhlyiBohdanK22-1</groupId>
-	<artifactId>qualitrack</artifactId>
+	<artifactId>trackingProfessionalQualificationsWebSys</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>qualitrack</name>
 	<description>Web-based system for tracking professional qualifications, training hours, and institutional certificates (Spring Boot/PostgreSQL).</description>

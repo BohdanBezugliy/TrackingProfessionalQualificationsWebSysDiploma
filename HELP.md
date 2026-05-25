@@ -1,7 +1,7 @@
 # Read Me First
 The following was discovered as part of building this project:
 
-* The original package name 'com.BezuhlyiBohdanK22-1.qualitrack' is invalid and this project uses 'com.BezuhlyiBohdanK22_1.qualitrack' instead.
+* The original package name 'com.BezuhlyiBohdanK22-1.qualitrack' is invalid and this project uses 'com.BezuhlyiBohdanK22_1.trackingProfessionalQualificationsWebSys' instead.
 
 # Getting Started
 

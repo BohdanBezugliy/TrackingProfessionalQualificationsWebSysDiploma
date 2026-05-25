@@ -1,0 +1,29 @@
+package com.BezuhlyiBohdanK22_1.trackingProfessionalQualificationsWebSys.config;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+
+import java.io.IOException;
+import java.util.Set;
+
+public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
+    Logger logger = LoggerFactory.getLogger(CustomAuthenticationSuccessHandler.class);
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        Authentication authentication) throws IOException {
+        Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
+        if (roles.contains("ROLE_ADMIN") || roles.contains("ADMIN")) {
+            response.sendRedirect("/admin/dashboard");
+            logger.info("Admin has been successfully logged in");
+        } else if (roles.contains("ROLE_USER") || roles.contains("USER")) {
+            response.sendRedirect("/user/dashboard");
+            logger.info("User has been successfully logged in");
+        }
+    }
+}
