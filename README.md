@@ -1,4 +1,4 @@
-## Qualitrack
+## Tracking professional qualifications web system for diploma
 Web-based system for tracking professional qualifications, training hours, and institutional certificates (Spring Boot/PostgreSQL).
 
 ---
