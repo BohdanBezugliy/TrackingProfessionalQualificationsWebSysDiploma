@@ -74,6 +74,10 @@ public class ReportService {
                         }
                     }
                     
+                    if (disciplineId != null) {
+                        disciplines.removeIf(d -> !d.getDisciplineId().equals(disciplineId));
+                    }
+                    
                     if (disciplines.isEmpty()) {
                         reportData.add(mapToReportDto(lecturer, filteredEvents, "Без прив'язки до дисципліни"));
                     } else {
@@ -101,6 +105,41 @@ public class ReportService {
         });
 
         return reportData;
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.BezuhlyiBohdanK22_1.trackingProfessionalQualificationsWebSys.dto.DisciplineDto> getAvailableDisciplines(String level, Long facultyId, Long departmentId, Long lecturerId) {
+        List<LectureEntity> lecturers;
+
+        if ("LECTURER".equalsIgnoreCase(level) && lecturerId != null) {
+            lecturers = lectureRepository.findById(lecturerId).stream().collect(Collectors.toList());
+        } else if ("DEPARTMENT".equalsIgnoreCase(level) && departmentId != null) {
+            lecturers = lectureRepository.findAll().stream()
+                    .filter(l -> l.getDepartmentEntity() != null && l.getDepartmentEntity().getDepartmentId().equals(departmentId))
+                    .collect(Collectors.toList());
+        } else if ("FACULTY".equalsIgnoreCase(level) && facultyId != null) {
+            lecturers = lectureRepository.findAll().stream()
+                    .filter(l -> l.getDepartmentEntity() != null && l.getDepartmentEntity().getFacultyEntity() != null 
+                            && l.getDepartmentEntity().getFacultyEntity().getFacultyId().equals(facultyId))
+                    .collect(Collectors.toList());
+        } else {
+            lecturers = lectureRepository.findAll();
+        }
+
+        Set<DisciplineEntity> disciplines = new HashSet<>();
+        for (LectureEntity lecturer : lecturers) {
+            List<UpskillEventEntity> events = upskillEventRepository.findAllByLectureEntity_LectureId(lecturer.getLectureId());
+            for (UpskillEventEntity event : events) {
+                if (event.getDisciplines() != null) {
+                    disciplines.addAll(event.getDisciplines());
+                }
+            }
+        }
+
+        return disciplines.stream()
+                .map(d -> new com.BezuhlyiBohdanK22_1.trackingProfessionalQualificationsWebSys.dto.DisciplineDto(d.getDisciplineId(), d.getDisciplineName(), 0))
+                .sorted((a, b) -> a.getDisciplineName().compareToIgnoreCase(b.getDisciplineName()))
+                .collect(Collectors.toList());
     }
 
     private String safeString(String s) {

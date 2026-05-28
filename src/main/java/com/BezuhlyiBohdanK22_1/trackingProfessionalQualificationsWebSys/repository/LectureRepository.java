@@ -20,7 +20,8 @@ public interface LectureRepository extends JpaRepository<LectureEntity, Long> {
            "OR LOWER(l.userEntity.email) LIKE :keywordPattern) " +
            "AND (:facultyId IS NULL OR l.departmentEntity.facultyEntity.facultyId = :facultyId) " +
            "AND (:departmentId IS NULL OR l.departmentEntity.departmentId = :departmentId)")
-    List<LectureEntity> searchLecturers(@Param("keywordPattern") String keywordPattern, 
+    org.springframework.data.domain.Page<LectureEntity> searchLecturers(@Param("keywordPattern") String keywordPattern, 
                                         @Param("facultyId") Long facultyId, 
-                                        @Param("departmentId") Long departmentId);
+                                        @Param("departmentId") Long departmentId,
+                                        org.springframework.data.domain.Pageable pageable);
 }

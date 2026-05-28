@@ -71,7 +71,7 @@
 
                     <div class="col-md-3 d-none" id="lecturerContainer">
                         <label class="form-label fw-bold">Викладач</label>
-                        <select class="form-select" name="lecturerId" id="lecturerSelect">
+                        <select class="form-select" name="lecturerId" id="lecturerSelect" onchange="fetchAvailableDisciplines()">
                             <option value="">-- Оберіть викладача --</option>
                             <option th:each="l : ${lecturers}" 
                                     th:value="${l.lectureId}" 
@@ -211,6 +211,8 @@
             filterDepartments();
             filterLecturers();
         }
+        
+        fetchAvailableDisciplines();
     }
 
     function filterDepartments() {
@@ -255,6 +257,42 @@
         }
         
         lectSelect.value = '';
+        fetchAvailableDisciplines();
+    }
+
+    function fetchAvailableDisciplines() {
+        const level = document.getElementById('levelSelect').value;
+        const facultyId = document.getElementById('facultySelect').value;
+        const departmentId = document.getElementById('departmentSelect').value;
+        const lecturerId = document.getElementById('lecturerSelect') ? document.getElementById('lecturerSelect').value : '';
+
+        let qs = `?level=${level}`;
+        if (facultyId) qs += `&facultyId=${facultyId}`;
+        if (departmentId) qs += `&departmentId=${departmentId}`;
+        if (lecturerId) qs += `&lecturerId=${lecturerId}`;
+
+        const disciplineSelect = document.getElementById('disciplineSelect');
+        const currentValue = disciplineSelect.value;
+        
+        fetch(`/admin/reports/disciplines${qs}`)
+            .then(res => res.json())
+            .then(data => {
+                let optionsHtml = '<option value="">-- Усі дисципліни --</option>';
+                let valueStillExists = false;
+                
+                data.forEach(disc => {
+                    optionsHtml += `<option value="${disc.disciplineId}">${disc.disciplineName}</option>`;
+                    if (currentValue && currentValue === String(disc.disciplineId)) {
+                        valueStillExists = true;
+                    }
+                });
+                
+                disciplineSelect.innerHTML = optionsHtml;
+                if (valueStillExists) {
+                    disciplineSelect.value = currentValue;
+                }
+            })
+            .catch(err => console.error("Failed to fetch disciplines", err));
     }
 
     function validateDates() {

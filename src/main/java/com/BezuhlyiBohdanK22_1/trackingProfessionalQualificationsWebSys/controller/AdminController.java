@@ -41,17 +41,27 @@ public class AdminController {
     public String dashboard(@RequestParam(required = false) String keyword,
                             @RequestParam(required = false) Long facultyId,
                             @RequestParam(required = false) Long departmentId,
+                            @RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "10") int size,
                             Model model) {
-        logger.info("Dashboard Admin - Search params: keyword={}, facultyId={}, departmentId={}", keyword, facultyId, departmentId);
+        logger.info("Dashboard Admin - Search params: keyword={}, facultyId={}, departmentId={}, page={}, size={}", keyword, facultyId, departmentId, page, size);
         
         model.addAttribute("faculties", facultyService.findAll().stream().map(facultyMapper::toDto).collect(Collectors.toList()));
         model.addAttribute("departments", departmentService.findAll().stream().map(departmentMapper::toDto).collect(Collectors.toList()));
         
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        org.springframework.data.domain.Page<com.BezuhlyiBohdanK22_1.trackingProfessionalQualificationsWebSys.entity.LectureEntity> lecturerPage;
+        
         if ((keyword != null && !keyword.trim().isEmpty()) || facultyId != null || departmentId != null) {
-            model.addAttribute("lecturers", lectureService.searchLecturers(keyword, facultyId, departmentId).stream().map(lecturerMapper::toDto).collect(Collectors.toList()));
+            lecturerPage = lectureService.searchLecturers(keyword, facultyId, departmentId, pageable);
         } else {
-            model.addAttribute("lecturers", lectureService.findAll().stream().map(lecturerMapper::toDto).collect(Collectors.toList()));
+            lecturerPage = lectureService.findAll(pageable);
         }
+        
+        model.addAttribute("lecturers", lecturerPage.getContent().stream().map(lecturerMapper::toDto).collect(Collectors.toList()));
+        model.addAttribute("currentPage", lecturerPage.getNumber());
+        model.addAttribute("totalPages", lecturerPage.getTotalPages());
+        model.addAttribute("totalElements", lecturerPage.getTotalElements());
         
         return "adminDashboard";
     }

@@ -73,6 +73,16 @@ public class ReportController {
         return "reports :: reportTable";
     }
 
+    @GetMapping("/disciplines")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public List<com.BezuhlyiBohdanK22_1.trackingProfessionalQualificationsWebSys.dto.DisciplineDto> getAvailableDisciplines(
+            @RequestParam(defaultValue = "UNIVERSITY") String level,
+            @RequestParam(required = false) Long facultyId,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) Long lecturerId) {
+        return reportService.getAvailableDisciplines(level, facultyId, departmentId, lecturerId);
+    }
+
     @GetMapping("/pdf")
     public ResponseEntity<byte[]> downloadPdf(
             @RequestParam(defaultValue = "UNIVERSITY") String level,

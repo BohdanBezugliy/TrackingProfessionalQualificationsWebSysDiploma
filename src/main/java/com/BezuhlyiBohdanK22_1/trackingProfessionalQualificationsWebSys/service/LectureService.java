@@ -82,8 +82,8 @@ public class LectureService implements ILectureService {
     }
 
     @Override
-    public List<LectureEntity> findAll() {
-        return lectureRepository.findAll();
+    public org.springframework.data.domain.Page<LectureEntity> findAll(org.springframework.data.domain.Pageable pageable) {
+        return lectureRepository.findAll(pageable);
     }
 
     @Override
@@ -182,12 +182,12 @@ public class LectureService implements ILectureService {
     }
 
     @Override
-    public List<LectureEntity> searchLecturers(String keyword, Long facultyId, Long departmentId) {
+    public org.springframework.data.domain.Page<LectureEntity> searchLecturers(String keyword, Long facultyId, Long departmentId, org.springframework.data.domain.Pageable pageable) {
         String keywordPattern = null;
         if (keyword != null && !keyword.trim().isEmpty()) {
             keywordPattern = "%" + keyword.trim().toLowerCase() + "%";
         }
-        return lectureRepository.searchLecturers(keywordPattern, facultyId, departmentId);
+        return lectureRepository.searchLecturers(keywordPattern, facultyId, departmentId, pageable);
     }
 
 }
