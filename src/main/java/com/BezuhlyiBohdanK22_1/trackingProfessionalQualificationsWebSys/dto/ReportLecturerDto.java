@@ -11,5 +11,6 @@ public class ReportLecturerDto {
     private String facultyName;
     private String educationDetails;
     private String academicInfo; // degree, rank
+    private String disciplineDetails; // details about discipline
     private String upskillingDetails; // formatted string of events
 }

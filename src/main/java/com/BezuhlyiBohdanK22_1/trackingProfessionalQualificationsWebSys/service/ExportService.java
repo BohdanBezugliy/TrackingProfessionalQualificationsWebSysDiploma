@@ -23,7 +23,7 @@ public class ExportService {
         this.templateEngine = templateEngine;
     }
 
-    public byte[] generatePdfReport(List<ReportLecturerDto> data, String level, Integer yearFrom, Integer yearTo) throws Exception {
+    public byte[] generatePdfReport(List<ReportLecturerDto> data, String level, Integer yearFrom, Integer yearTo, boolean detailedMode) throws Exception {
         Context context = new Context();
         
         Map<String, List<ReportLecturerDto>> groupedData = data.stream()
@@ -37,6 +37,7 @@ public class ExportService {
         context.setVariable("level", level);
         context.setVariable("yearFrom", yearFrom);
         context.setVariable("yearTo", yearTo);
+        context.setVariable("detailedMode", detailedMode);
 
         String htmlContent = templateEngine.process("reportPdfTemplate", context);
 
@@ -54,7 +55,7 @@ public class ExportService {
         }
     }
 
-    public byte[] generateXlsxReport(List<ReportLecturerDto> data, String level, Integer yearFrom, Integer yearTo) throws Exception {
+    public byte[] generateXlsxReport(List<ReportLecturerDto> data, String level, Integer yearFrom, Integer yearTo, boolean detailedMode) throws Exception {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Звіт");
 
@@ -83,7 +84,13 @@ public class ExportService {
 
             // Create Headers
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"ПІБ", "Посада", "Освіта", "Академічна інформація", "Підвищення кваліфікації"};
+            String[] headers;
+            if (detailedMode) {
+                headers = new String[]{"ПІБ", "Посада", "Освіта", "Академічна інформація", "Дисципліна", "Підвищення кваліфікації"};
+            } else {
+                headers = new String[]{"ПІБ", "Посада", "Освіта", "Академічна інформація", "Підвищення кваліфікації"};
+            }
+            
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
@@ -91,12 +98,15 @@ public class ExportService {
                 sheet.setColumnWidth(i, 256 * 20); // Base width
             }
             sheet.setColumnWidth(2, 256 * 40); // Education
-            sheet.setColumnWidth(4, 256 * 50); // Upskilling
+            if (detailedMode) {
+                sheet.setColumnWidth(4, 256 * 30); // Discipline
+                sheet.setColumnWidth(5, 256 * 50); // Upskilling
+            } else {
+                sheet.setColumnWidth(4, 256 * 50); // Upskilling
+            }
 
             int rowIdx = 1;
             
-            // Group data by division (Faculty -> Department) for better Excel display if needed,
-            // or just flat list as we did. Let's use flat list since they are already sorted.
             String currentDivision = "";
 
             for (ReportLecturerDto dto : data) {
@@ -123,7 +133,13 @@ public class ExportService {
                 Cell c1 = row.createCell(1); c1.setCellValue(dto.getPosition()); c1.setCellStyle(dataStyle);
                 Cell c2 = row.createCell(2); c2.setCellValue(dto.getEducationDetails()); c2.setCellStyle(dataStyle);
                 Cell c3 = row.createCell(3); c3.setCellValue(dto.getAcademicInfo()); c3.setCellStyle(dataStyle);
-                Cell c4 = row.createCell(4); c4.setCellValue(dto.getUpskillingDetails()); c4.setCellStyle(dataStyle);
+                
+                if (detailedMode) {
+                    Cell c4 = row.createCell(4); c4.setCellValue(dto.getDisciplineDetails()); c4.setCellStyle(dataStyle);
+                    Cell c5 = row.createCell(5); c5.setCellValue(dto.getUpskillingDetails()); c5.setCellStyle(dataStyle);
+                } else {
+                    Cell c4 = row.createCell(4); c4.setCellValue(dto.getUpskillingDetails()); c4.setCellStyle(dataStyle);
+                }
             }
 
             workbook.write(out);

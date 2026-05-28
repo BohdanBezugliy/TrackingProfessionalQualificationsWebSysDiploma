@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,11 +21,13 @@ public class ReportService {
     private final UpskillEventRepository upskillEventRepository;
 
     @Transactional(readOnly = true)
-    public List<ReportLecturerDto> generateReport(String level, Long facultyId, Long departmentId, Integer yearFrom, Integer yearTo) {
+    public List<ReportLecturerDto> generateReport(String level, Long facultyId, Long departmentId, Long lecturerId, Long disciplineId, Integer yearFrom, Integer yearTo, boolean detailedMode) {
         List<LectureEntity> lecturers;
 
         // Fetch based on level
-        if ("DEPARTMENT".equalsIgnoreCase(level) && departmentId != null) {
+        if ("LECTURER".equalsIgnoreCase(level) && lecturerId != null) {
+            lecturers = lectureRepository.findById(lecturerId).stream().collect(Collectors.toList());
+        } else if ("DEPARTMENT".equalsIgnoreCase(level) && departmentId != null) {
             lecturers = lectureRepository.findAll().stream()
                     .filter(l -> l.getDepartmentEntity() != null && l.getDepartmentEntity().getDepartmentId().equals(departmentId))
                     .collect(Collectors.toList());
@@ -44,17 +48,46 @@ public class ReportService {
             // but since we're in @Transactional they can be accessed.
             List<UpskillEventEntity> allEvents = upskillEventRepository.findAllByLectureEntity_LectureId(lecturer.getLectureId());
             
-            // Filter by year
+            // Filter by year and discipline
             List<UpskillEventEntity> filteredEvents = allEvents.stream().filter(e -> {
                 if (e.getDateEnd() == null) return false;
                 int year = e.getDateEnd().getYear();
                 boolean afterStart = (yearFrom == null) || (year >= yearFrom);
                 boolean beforeEnd = (yearTo == null) || (year <= yearTo);
-                return afterStart && beforeEnd;
+                
+                boolean matchesDiscipline = true;
+                if (disciplineId != null) {
+                    matchesDiscipline = e.getDisciplines() != null && e.getDisciplines().stream()
+                            .anyMatch(d -> d.getDisciplineId().equals(disciplineId));
+                }
+                
+                return afterStart && beforeEnd && matchesDiscipline;
             }).collect(Collectors.toList());
 
-            if (!filteredEvents.isEmpty() || yearFrom == null) {
-                reportData.add(mapToReportDto(lecturer, filteredEvents));
+            if (!filteredEvents.isEmpty() || (yearFrom == null && disciplineId == null)) {
+                if (detailedMode) {
+                    // Collect all unique disciplines across the filtered events
+                    Set<DisciplineEntity> disciplines = new HashSet<>();
+                    for (UpskillEventEntity event : filteredEvents) {
+                        if (event.getDisciplines() != null && !event.getDisciplines().isEmpty()) {
+                            disciplines.addAll(event.getDisciplines());
+                        }
+                    }
+                    
+                    if (disciplines.isEmpty()) {
+                        reportData.add(mapToReportDto(lecturer, filteredEvents, "Без прив'язки до дисципліни"));
+                    } else {
+                        // Create a row for each discipline
+                        for (DisciplineEntity discipline : disciplines) {
+                            List<UpskillEventEntity> discEvents = filteredEvents.stream()
+                                    .filter(e -> e.getDisciplines() != null && e.getDisciplines().contains(discipline))
+                                    .collect(Collectors.toList());
+                            reportData.add(mapToReportDto(lecturer, discEvents, discipline.getDisciplineName()));
+                        }
+                    }
+                } else {
+                    reportData.add(mapToReportDto(lecturer, filteredEvents, null));
+                }
             }
         }
         
@@ -74,7 +107,7 @@ public class ReportService {
         return s == null ? "" : s;
     }
 
-    private ReportLecturerDto mapToReportDto(LectureEntity l, List<UpskillEventEntity> events) {
+    private ReportLecturerDto mapToReportDto(LectureEntity l, List<UpskillEventEntity> events, String disciplineName) {
         ReportLecturerDto dto = new ReportLecturerDto();
         dto.setId(l.getLectureId());
         
@@ -112,11 +145,13 @@ public class ReportService {
             dto.setEducationDetails("Немає даних");
         }
 
+        // Discipline details
+        dto.setDisciplineDetails(disciplineName != null ? disciplineName : "");
+
         // Upskilling
         if (events != null && !events.isEmpty()) {
             String upStr = events.stream()
                     .map(e -> {
-                        String type = e.getDocumentEntity() != null ? e.getDocumentEntity().getDocumentType() : "Документ";
                         return String.format("%d р. - %s, %s, %d год (%.1f кредити ЄКТС)", 
                                 e.getDateEnd().getYear(), e.getInstitutionName(), e.getTopic(), 
                                 e.getHours(), e.getEctsCredits());

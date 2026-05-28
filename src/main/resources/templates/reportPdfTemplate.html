@@ -36,11 +36,12 @@
             text-align: center;
             font-weight: bold;
         }
-        .col-name { width: 15%; }
-        .col-pos { width: 15%; }
-        .col-edu { width: 25%; }
-        .col-acad { width: 15%; }
-        .col-up { width: 30%; }
+        .col-name { width: 12%; }
+        .col-pos { width: 12%; }
+        .col-edu { width: 22%; }
+        .col-acad { width: 14%; }
+        .col-disc { width: 15%; }
+        .col-up { width: 25%; }
         
         .division-header {
             background-color: #d9d9d9;
@@ -58,6 +59,7 @@
             <span th:if="${level == 'UNIVERSITY'}">По університету</span>
             <span th:if="${level == 'FACULTY'}">По факультету</span>
             <span th:if="${level == 'DEPARTMENT'}">По кафедрі</span>
+            <span th:if="${level == 'LECTURER'}">По конкретному викладачу</span>
         </p>
         <p th:if="${yearFrom != null or yearTo != null}">
             Період: 
@@ -69,24 +71,26 @@
     <table>
         <thead>
             <tr>
-                <th class="col-name">ПІБ</th>
-                <th class="col-pos">Посада</th>
-                <th class="col-edu">Освіта</th>
-                <th class="col-acad">Академічна інформація</th>
-                <th class="col-up">Підвищення кваліфікації</th>
+                <th th:class="${detailedMode} ? 'col-name' : ''">ПІБ</th>
+                <th th:class="${detailedMode} ? 'col-pos' : ''">Посада</th>
+                <th th:class="${detailedMode} ? 'col-edu' : ''">Освіта</th>
+                <th th:class="${detailedMode} ? 'col-acad' : ''">Академічна інформація</th>
+                <th th:if="${detailedMode}" class="col-disc">Дисципліна</th>
+                <th th:class="${detailedMode} ? 'col-up' : ''">Підвищення кваліфікації</th>
             </tr>
         </thead>
         <tbody>
             <th:block th:unless="${#maps.isEmpty(groupedData)}">
                 <th:block th:each="entry : ${groupedData}">
                     <tr class="division-header">
-                        <td colspan="5" th:text="${'Підрозділ: ' + entry.key}"></td>
+                        <td th:colspan="${detailedMode} ? 6 : 5" th:text="${'Підрозділ: ' + entry.key}"></td>
                     </tr>
                     <tr th:each="row : ${entry.value}">
                         <td th:text="${row.fullName}"></td>
                         <td th:text="${row.position}"></td>
                         <td th:text="${row.educationDetails}"></td>
                         <td th:text="${row.academicInfo}"></td>
+                        <td th:if="${detailedMode}" th:text="${row.disciplineDetails}"></td>
                         <td th:text="${row.upskillingDetails}"></td>
                     </tr>
                 </th:block>

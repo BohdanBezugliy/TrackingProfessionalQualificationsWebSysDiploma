@@ -39,31 +39,60 @@
         <div class="card-body">
             <form id="reportForm" onsubmit="return false;">
                 <div class="row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label fw-bold">Рівень звіту</label>
                         <select class="form-select" name="level" id="levelSelect" onchange="toggleSelectors()">
                             <option value="UNIVERSITY">По університету</option>
                             <option value="FACULTY">По факультету</option>
                             <option value="DEPARTMENT">По кафедрі</option>
+                            <option value="LECTURER">По конкретному викладачу</option>
                         </select>
                     </div>
                     
-                    <div class="col-md-4 d-none" id="facultyContainer">
+                    <div class="col-md-3 d-none" id="facultyContainer">
                         <label class="form-label fw-bold">Факультет</label>
-                        <select class="form-select" name="facultyId" id="facultySelect">
+                        <select class="form-select" name="facultyId" id="facultySelect" onchange="filterDepartments()">
+                            <option value="">-- Оберіть факультет --</option>
                             <option th:each="f : ${faculties}" th:value="${f.facultyId}" th:text="${f.facultyName}"></option>
                         </select>
                     </div>
                     
-                    <div class="col-md-4 d-none" id="departmentContainer">
+                    <div class="col-md-3 d-none" id="departmentContainer">
                         <label class="form-label fw-bold">Кафедра</label>
-                        <select class="form-select" name="departmentId" id="departmentSelect">
-                            <option th:each="d : ${departments}" th:value="${d.departmentId}" th:text="${d.departmentName}"></option>
+                        <select class="form-select" name="departmentId" id="departmentSelect" onchange="filterLecturers()">
+                            <option value="">-- Оберіть кафедру --</option>
+                            <option th:each="d : ${departments}" 
+                                    th:value="${d.departmentId}" 
+                                    th:data-faculty-id="${d.facultyEntity != null ? d.facultyEntity.facultyId : ''}"
+                                    th:text="${d.departmentName}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 d-none" id="lecturerContainer">
+                        <label class="form-label fw-bold">Викладач</label>
+                        <select class="form-select" name="lecturerId" id="lecturerSelect">
+                            <option value="">-- Оберіть викладача --</option>
+                            <option th:each="l : ${lecturers}" 
+                                    th:value="${l.lectureId}" 
+                                    th:data-department-id="${l.departmentEntity != null ? l.departmentEntity.departmentId : ''}"
+                                    th:text="${l.lastName + ' ' + l.firstName + (l.middleName != null ? ' ' + l.middleName : '')}">
+                            </option>
                         </select>
                     </div>
                 </div>
 
-                <div class="row mb-4">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Фільтр по дисципліні</label>
+                        <select class="form-select" name="disciplineId" id="disciplineSelect">
+                            <option value="">-- Усі дисципліни --</option>
+                            <option th:each="disc : ${disciplines}" 
+                                    th:value="${disc.disciplineId}" 
+                                    th:text="${disc.disciplineName}">
+                            </option>
+                        </select>
+                    </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Рік з (включно)</label>
                         <input type="number" class="form-control" name="yearFrom" id="yearFrom" placeholder="Напр. 2020">
@@ -71,6 +100,17 @@
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Рік по (включно)</label>
                         <input type="number" class="form-control" name="yearTo" id="yearTo" placeholder="Напр. 2024">
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="detailedModeCheck" name="detailedMode">
+                            <label class="form-check-label" for="detailedModeCheck">
+                                <strong>Деталізований режим:</strong> додати стовпець "Дисципліна" та розділити викладачів по дисциплінах.
+                            </label>
+                        </div>
                     </div>
                 </div>
                 
@@ -102,30 +142,32 @@
                         <table class="table table-bordered report-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 15%">ПІБ</th>
-                                    <th style="width: 15%">Посада</th>
-                                    <th style="width: 25%">Освіта</th>
-                                    <th style="width: 15%">Академічна інформація</th>
-                                    <th style="width: 30%">Підвищення кваліфікації</th>
+                                    <th th:style="${detailedMode} ? 'width: 12%' : 'width: 15%'">ПІБ</th>
+                                    <th th:style="${detailedMode} ? 'width: 12%' : 'width: 15%'">Посада</th>
+                                    <th th:style="${detailedMode} ? 'width: 22%' : 'width: 25%'">Освіта</th>
+                                    <th th:style="${detailedMode} ? 'width: 14%' : 'width: 15%'">Академічна інформація</th>
+                                    <th th:if="${detailedMode}" style="width: 15%">Дисципліна</th>
+                                    <th th:style="${detailedMode} ? 'width: 25%' : 'width: 30%'">Підвищення кваліфікації</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <th:block th:if="${#lists.isEmpty(reportData)}">
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">Немає даних за обраними критеріями</td>
+                                        <td th:colspan="${detailedMode} ? 6 : 5" class="text-center text-muted py-4">Немає даних за обраними критеріями</td>
                                     </tr>
                                 </th:block>
                                 
                                 <th:block th:unless="${#maps.isEmpty(groupedData)}">
                                     <th:block th:each="entry : ${groupedData}">
                                         <tr class="division-header">
-                                            <td colspan="5" th:text="${'Підрозділ: ' + entry.key}"></td>
+                                            <td th:colspan="${detailedMode} ? 6 : 5" th:text="${'Підрозділ: ' + entry.key}"></td>
                                         </tr>
                                         <tr th:each="row : ${entry.value}">
                                             <td class="fw-bold" th:text="${row.fullName}"></td>
                                             <td th:text="${row.position}"></td>
                                             <td th:text="${row.educationDetails}"></td>
                                             <td th:text="${row.academicInfo}"></td>
+                                            <td th:if="${detailedMode}" th:text="${row.disciplineDetails}"></td>
                                             <td th:text="${row.upskillingDetails}"></td>
                                         </tr>
                                     </th:block>
@@ -141,21 +183,78 @@
 </div>
 
 <script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        // Initialize filters on load
+        filterDepartments();
+    });
+
     function toggleSelectors() {
         const level = document.getElementById('levelSelect').value;
         const facContainer = document.getElementById('facultyContainer');
         const depContainer = document.getElementById('departmentContainer');
+        const lectContainer = document.getElementById('lecturerContainer');
         
-        if (level === 'UNIVERSITY') {
-            facContainer.classList.add('d-none');
-            depContainer.classList.add('d-none');
-        } else if (level === 'FACULTY') {
+        facContainer.classList.add('d-none');
+        depContainer.classList.add('d-none');
+        lectContainer.classList.add('d-none');
+
+        if (level === 'FACULTY') {
             facContainer.classList.remove('d-none');
-            depContainer.classList.add('d-none');
         } else if (level === 'DEPARTMENT') {
-            facContainer.classList.add('d-none');
+            facContainer.classList.remove('d-none');
             depContainer.classList.remove('d-none');
+            filterDepartments(); // apply faculty filter to departments
+        } else if (level === 'LECTURER') {
+            facContainer.classList.remove('d-none');
+            depContainer.classList.remove('d-none');
+            lectContainer.classList.remove('d-none');
+            filterDepartments();
+            filterLecturers();
         }
+    }
+
+    function filterDepartments() {
+        const facultyId = document.getElementById('facultySelect').value;
+        const depSelect = document.getElementById('departmentSelect');
+        const options = depSelect.options;
+
+        let hasVisible = false;
+        for (let i = 1; i < options.length; i++) { // skip option[0] which is empty
+            const opt = options[i];
+            const optFacId = opt.getAttribute('data-faculty-id');
+            if (!facultyId || optFacId === facultyId) {
+                opt.style.display = '';
+                hasVisible = true;
+            } else {
+                opt.style.display = 'none';
+            }
+        }
+        
+        // Always reset selection when filtering
+        depSelect.value = '';
+        filterLecturers();
+    }
+
+    function filterLecturers() {
+        const departmentId = document.getElementById('departmentSelect').value;
+        const lectSelect = document.getElementById('lecturerSelect');
+        if (!lectSelect) return;
+        
+        const options = lectSelect.options;
+
+        let hasVisible = false;
+        for (let i = 1; i < options.length; i++) {
+            const opt = options[i];
+            const optDepId = opt.getAttribute('data-department-id');
+            if (!departmentId || optDepId === departmentId) {
+                opt.style.display = '';
+                hasVisible = true;
+            } else {
+                opt.style.display = 'none';
+            }
+        }
+        
+        lectSelect.value = '';
     }
 
     function validateDates() {
@@ -178,14 +277,20 @@
         const level = document.getElementById('levelSelect').value;
         const facultyId = document.getElementById('facultySelect').value;
         const departmentId = document.getElementById('departmentSelect').value;
+        const lecturerId = document.getElementById('lecturerSelect') ? document.getElementById('lecturerSelect').value : '';
+        const disciplineId = document.getElementById('disciplineSelect').value;
         const yearFrom = document.getElementById('yearFrom').value;
         const yearTo = document.getElementById('yearTo').value;
+        const detailedMode = document.getElementById('detailedModeCheck').checked;
         
         let qs = `?level=${level}`;
-        if (level === 'FACULTY' && facultyId) qs += `&facultyId=${facultyId}`;
-        if (level === 'DEPARTMENT' && departmentId) qs += `&departmentId=${departmentId}`;
+        if ((level === 'FACULTY' || level === 'DEPARTMENT' || level === 'LECTURER') && facultyId) qs += `&facultyId=${facultyId}`;
+        if ((level === 'DEPARTMENT' || level === 'LECTURER') && departmentId) qs += `&departmentId=${departmentId}`;
+        if (level === 'LECTURER' && lecturerId) qs += `&lecturerId=${lecturerId}`;
+        if (disciplineId) qs += `&disciplineId=${disciplineId}`;
         if (yearFrom) qs += `&yearFrom=${yearFrom}`;
         if (yearTo) qs += `&yearTo=${yearTo}`;
+        if (detailedMode) qs += `&detailedMode=true`;
         
         return qs;
     }
