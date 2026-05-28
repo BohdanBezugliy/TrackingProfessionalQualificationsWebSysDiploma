@@ -7,9 +7,19 @@ import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
+/**
+ * Маппер для перетворення сутності заходу підвищення кваліфікації ({@link UpskillEventEntity}) у DTO ({@link UpskillEventDto}).
+ */
 @Component
 public class UpskillEventMapper {
 
+    /**
+     * Перетворює сутність заходу підвищення кваліфікації у DTO.
+     *
+     * @param entity сутність заходу підвищення кваліфікації ({@link UpskillEventEntity}).
+     * @return об'єкт {@link UpskillEventDto}, що містить дані про захід, пов'язаний документ та дисципліни,
+     *         або {@code null}, якщо вхідна сутність є {@code null}.
+     */
     public UpskillEventDto toDto(UpskillEventEntity entity) {
         if (entity == null) return null;
         UpskillEventDto dto = new UpskillEventDto();

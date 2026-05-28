@@ -7,12 +7,23 @@ import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
+/**
+ * Маппер для перетворення сутності викладача ({@link LectureEntity}) у DTO ({@link LecturerDto}).
+ * Використовується для передачі даних на клієнтський рівень.
+ */
 @Component
 @RequiredArgsConstructor
 public class LecturerMapper {
 
     private final EducationMapper educationMapper;
 
+    /**
+     * Перетворює сутність викладача у DTO.
+     *
+     * @param entity сутність викладача ({@link LectureEntity}).
+     * @return об'єкт {@link LecturerDto}, що містить дані викладача, його освіти, кафедри та факультету,
+     *         або {@code null}, якщо вхідна сутність є {@code null}.
+     */
     public LecturerDto toDto(LectureEntity entity) {
         if (entity == null) return null;
         LecturerDto dto = new LecturerDto();

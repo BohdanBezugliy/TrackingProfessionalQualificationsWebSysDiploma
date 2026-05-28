@@ -8,9 +8,21 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+/**
+ * Контролер для обробки помилок у веб-додатку.
+ * Реалізує інтерфейс {@link ErrorController} для перехоплення та налаштування відображення сторінок помилок.
+ */
 @Controller
 public class CustomErrorController implements ErrorController {
 
+    /**
+     * Обробляє всі помилки, що виникають під час виконання запитів.
+     * Визначає HTTP-статус та формує відповідне повідомлення про помилку для відображення користувачу.
+     *
+     * @param request об'єкт {@link HttpServletRequest}, що містить інформацію про помилку
+     * @param model   об'єкт {@link Model} для передачі даних (код статусу та повідомлення) у представлення
+     * @return назва HTML-шаблону сторінки помилки ("error")
+     */
     @RequestMapping("/error")
     public String handleError(HttpServletRequest request, Model model) {
         Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);

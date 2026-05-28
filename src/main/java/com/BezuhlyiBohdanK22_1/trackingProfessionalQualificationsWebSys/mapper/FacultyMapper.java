@@ -7,12 +7,22 @@ import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
+/**
+ * Маппер для перетворення сутності факультету ({@link FacultyEntity}) у DTO ({@link FacultyDto}).
+ */
 @Component
 @RequiredArgsConstructor
 public class FacultyMapper {
 
     private final DepartmentMapper departmentMapper;
 
+    /**
+     * Перетворює сутність факультету у DTO.
+     *
+     * @param entity сутність факультету ({@link FacultyEntity}).
+     * @return об'єкт {@link FacultyDto}, що містить дані факультету та список його кафедр,
+     *         або {@code null}, якщо вхідна сутність є {@code null}.
+     */
     public FacultyDto toDto(FacultyEntity entity) {
         if (entity == null) return null;
         FacultyDto dto = new FacultyDto();

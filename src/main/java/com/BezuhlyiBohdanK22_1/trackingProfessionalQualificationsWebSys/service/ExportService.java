@@ -14,15 +14,40 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Сервіс для експорту звітів про підвищення кваліфікації у різних форматах.
+ * Підтримує генерацію звітів у форматах PDF (використовуючи Thymeleaf та Flying Saucer iText) 
+ * та Excel (XLSX, використовуючи Apache POI).
+ */
 @Service
 public class ExportService {
 
+    /**
+     * Рушій шаблонів Thymeleaf для рендерингу HTML, який потім перетворюється на PDF.
+     */
     private final TemplateEngine templateEngine;
 
+    /**
+     * Конструктор для ініціалізації залежностей сервісу експорту.
+     * 
+     * @param templateEngine рушій шаблонів Thymeleaf
+     */
     public ExportService(TemplateEngine templateEngine) {
         this.templateEngine = templateEngine;
     }
 
+    /**
+     * Генерує PDF-документ зі звітом про викладачів на основі HTML-шаблону.
+     * Дані групуються за факультетом та кафедрою.
+     * 
+     * @param data список DTO об'єктів {@link ReportLecturerDto} з даними для звіту
+     * @param level рівень деталізації (наприклад, університет, факультет, кафедра)
+     * @param yearFrom початковий рік періоду (включно, може бути null)
+     * @param yearTo кінцевий рік періоду (включно, може бути null)
+     * @param detailedMode чи включений детальний режим (з розбивкою за дисциплінами)
+     * @return масив байтів (byte[]), що представляє згенерований PDF-файл
+     * @throws Exception якщо виникає помилка при генерації PDF
+     */
     public byte[] generatePdfReport(List<ReportLecturerDto> data, String level, Integer yearFrom, Integer yearTo, boolean detailedMode) throws Exception {
         Context context = new Context();
         
@@ -55,6 +80,18 @@ public class ExportService {
         }
     }
 
+    /**
+     * Генерує Excel-документ (XLSX) зі звітом про підвищення кваліфікації викладачів.
+     * Дані групуються за факультетом та кафедрою з відповідним виділенням рядків-заголовків.
+     * 
+     * @param data список DTO об'єктів {@link ReportLecturerDto} з даними для звіту
+     * @param level рівень деталізації (наприклад, університет, факультет, кафедра)
+     * @param yearFrom початковий рік періоду (включно, може бути null)
+     * @param yearTo кінцевий рік періоду (включно, може бути null)
+     * @param detailedMode чи включений детальний режим (впливає на набір колонок у звіті)
+     * @return масив байтів (byte[]), що представляє згенерований XLSX-файл
+     * @throws Exception якщо виникає помилка при генерації Excel
+     */
     public byte[] generateXlsxReport(List<ReportLecturerDto> data, String level, Integer yearFrom, Integer yearTo, boolean detailedMode) throws Exception {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Звіт");

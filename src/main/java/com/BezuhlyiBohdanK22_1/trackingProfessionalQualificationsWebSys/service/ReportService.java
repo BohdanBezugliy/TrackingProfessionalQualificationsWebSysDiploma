@@ -13,13 +13,38 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Сервіс для генерації звітів про підвищення кваліфікації викладачів.
+ * Надає функціональність для формування звітів на різних рівнях (університет, факультет, кафедра, викладач),
+ * а також отримання списку доступних дисциплін для фільтрації.
+ */
 @Service
 @RequiredArgsConstructor
 public class ReportService {
 
+    /**
+     * Репозиторій для роботи з сутностями викладачів.
+     */
     private final LectureRepository lectureRepository;
+
+    /**
+     * Репозиторій для роботи із заходами підвищення кваліфікації.
+     */
     private final UpskillEventRepository upskillEventRepository;
 
+    /**
+     * Генерує звіт про підвищення кваліфікації викладачів згідно із заданими критеріями.
+     * 
+     * @param level рівень деталізації звіту ("UNIVERSITY", "FACULTY", "DEPARTMENT", "LECTURER")
+     * @param facultyId ідентифікатор факультету (якщо застосовується)
+     * @param departmentId ідентифікатор кафедри (якщо застосовується)
+     * @param lecturerId ідентифікатор викладача (якщо застосовується)
+     * @param disciplineId ідентифікатор дисципліни для фільтрації заходів підвищення кваліфікації
+     * @param yearFrom початковий рік для фільтрації заходів (включно)
+     * @param yearTo кінцевий рік для фільтрації заходів (включно)
+     * @param detailedMode режим деталізації (якщо true, створюються окремі записи для кожної дисципліни)
+     * @return список об'єктів {@link ReportLecturerDto} з даними для звіту
+     */
     @Transactional(readOnly = true)
     public List<ReportLecturerDto> generateReport(String level, Long facultyId, Long departmentId, Long lecturerId, Long disciplineId, Integer yearFrom, Integer yearTo, boolean detailedMode) {
         List<LectureEntity> lecturers;
@@ -107,6 +132,15 @@ public class ReportService {
         return reportData;
     }
 
+    /**
+     * Отримує список доступних дисциплін для заданого рівня звіту, за якими викладачі проходили підвищення кваліфікації.
+     * 
+     * @param level рівень деталізації ("UNIVERSITY", "FACULTY", "DEPARTMENT", "LECTURER")
+     * @param facultyId ідентифікатор факультету (якщо застосовується)
+     * @param departmentId ідентифікатор кафедри (якщо застосовується)
+     * @param lecturerId ідентифікатор викладача (якщо застосовується)
+     * @return список об'єктів {@link com.BezuhlyiBohdanK22_1.trackingProfessionalQualificationsWebSys.dto.DisciplineDto}
+     */
     @Transactional(readOnly = true)
     public List<com.BezuhlyiBohdanK22_1.trackingProfessionalQualificationsWebSys.dto.DisciplineDto> getAvailableDisciplines(String level, Long facultyId, Long departmentId, Long lecturerId) {
         List<LectureEntity> lecturers;
@@ -142,10 +176,24 @@ public class ReportService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Забезпечує безпечне перетворення значення на рядок (повертає порожній рядок замість null).
+     * 
+     * @param s вхідний рядок
+     * @return вихідний рядок, що не є null
+     */
     private String safeString(String s) {
         return s == null ? "" : s;
     }
 
+    /**
+     * Перетворює сутність викладача та пов'язані заходи підвищення кваліфікації на DTO для звіту.
+     * 
+     * @param l сутність викладача {@link LectureEntity}
+     * @param events список відфільтрованих заходів підвищення кваліфікації
+     * @param disciplineName назва дисципліни (або опис відсутності прив'язки), що додається до звіту
+     * @return об'єкт {@link ReportLecturerDto} із зведеними даними викладача та його підвищень кваліфікації
+     */
     private ReportLecturerDto mapToReportDto(LectureEntity l, List<UpskillEventEntity> events, String disciplineName) {
         ReportLecturerDto dto = new ReportLecturerDto();
         dto.setId(l.getLectureId());

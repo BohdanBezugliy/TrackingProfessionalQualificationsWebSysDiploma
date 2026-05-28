@@ -22,6 +22,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.stream.Collectors;
 
+/**
+ * Контролер для адміністративної панелі системи.
+ * Керує факультетами, кафедрами, а також викладачами (перегляд, пошук, створення, редагування, видалення).
+ */
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
@@ -36,6 +40,19 @@ public class AdminController {
     private final DepartmentMapper departmentMapper;
     private final LecturerMapper lecturerMapper;
 
+    /**
+     * Відображає головну панель адміністратора (дашборд).
+     * Дозволяє здійснювати пошук викладачів за ключовим словом, факультетом та кафедрою,
+     * а також підтримує пагінацію результатів.
+     *
+     * @param keyword      ключове слово для пошуку викладача (за ПІБ тощо)
+     * @param facultyId    ідентифікатор факультету для фільтрації
+     * @param departmentId ідентифікатор кафедри для фільтрації
+     * @param page         номер поточної сторінки пагінації (за замовчуванням 0)
+     * @param size         кількість елементів на сторінці (за замовчуванням 10)
+     * @param model        об'єкт {@link Model} для передачі даних у представлення
+     * @return назва HTML-шаблону панелі адміністратора ("adminDashboard")
+     */
     @GetMapping("/dashboard")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public String dashboard(@RequestParam(required = false) String keyword,
@@ -66,6 +83,12 @@ public class AdminController {
         return "adminDashboard";
     }
 
+    /**
+     * Відображає сторінку управління структурою університету (факультетами та кафедрами).
+     *
+     * @param model об'єкт {@link Model} для передачі списку факультетів та кафедр
+     * @return назва HTML-шаблону сторінки структури ("facultiesAndDepartments")
+     */
     @GetMapping("/structure")
     public String structure(Model model) {
         logger.info("Structure Management Admin");
@@ -74,6 +97,13 @@ public class AdminController {
         return "facultiesAndDepartments";
     }
 
+    /**
+     * Створює новий факультет на основі переданих даних.
+     *
+     * @param dto                об'єкт {@link FacultyDto} з даними нового факультету
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень (успіх/помилка) при редиректі
+     * @return редирект на сторінку управління структурою
+     */
     @PostMapping("/faculty/create")
     public String createFaculty(@ModelAttribute FacultyDto dto, RedirectAttributes redirectAttributes) {
         logger.info("Create Faculty: {}", dto.getFacultyName());
@@ -88,6 +118,14 @@ public class AdminController {
         return "redirect:/admin/structure";
     }
 
+    /**
+     * Оновлює інформацію про існуючий факультет.
+     *
+     * @param id                 ідентифікатор факультету, що оновлюється
+     * @param facultyName        нова назва факультету
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень при редиректі
+     * @return редирект на сторінку управління структурою
+     */
     @PostMapping("/faculty/update/{id}")
     public String updateFaculty(@PathVariable Long id, @RequestParam String facultyName, RedirectAttributes redirectAttributes) {
         logger.info("Update Faculty: {}", id);
@@ -102,6 +140,14 @@ public class AdminController {
         return "redirect:/admin/structure";
     }
 
+    /**
+     * Видаляє факультет за його ідентифікатором.
+     * У разі наявності зв'язаних кафедр або викладачів генерує помилку.
+     *
+     * @param id                 ідентифікатор факультету для видалення
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку управління структурою
+     */
     @PostMapping("/faculty/delete/{id}")
     public String deleteFaculty(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         logger.info("Delete Faculty: {}", id);
@@ -114,6 +160,13 @@ public class AdminController {
         return "redirect:/admin/structure";
     }
 
+    /**
+     * Створює нову кафедру на основі переданих даних.
+     *
+     * @param dto                об'єкт {@link DepartmentDto} з даними нової кафедри
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку управління структурою
+     */
     @PostMapping("/department/create")
     public String createDepartment(@ModelAttribute DepartmentDto dto, RedirectAttributes redirectAttributes) {
         logger.info("Create Department: {}", dto.getDepartmentName());
@@ -130,6 +183,15 @@ public class AdminController {
         return "redirect:/admin/structure";
     }
 
+    /**
+     * Оновлює інформацію про існуючу кафедру.
+     *
+     * @param id                 ідентифікатор кафедри, що оновлюється
+     * @param departmentName     нова назва кафедри
+     * @param facultyId          ідентифікатор факультету, до якого належатиме кафедра
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку управління структурою
+     */
     @PostMapping("/department/update/{id}")
     public String updateDepartment(@PathVariable Long id, @RequestParam String departmentName, @RequestParam Long facultyId, RedirectAttributes redirectAttributes) {
         logger.info("Update Department: {}", id);
@@ -146,6 +208,14 @@ public class AdminController {
         return "redirect:/admin/structure";
     }
 
+    /**
+     * Видаляє кафедру за її ідентифікатором.
+     * У разі наявності зв'язаних викладачів генерує помилку.
+     *
+     * @param id                 ідентифікатор кафедри для видалення
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку управління структурою
+     */
     @PostMapping("/department/delete/{id}")
     public String deleteDepartment(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         logger.info("Delete Department: {}", id);
@@ -158,6 +228,13 @@ public class AdminController {
         return "redirect:/admin/structure";
     }
 
+    /**
+     * Створює нового викладача в системі.
+     *
+     * @param dto                об'єкт {@link LectureDto} з даними викладача
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на панель адміністратора (дашборд)
+     */
     @PostMapping("/lecturers/create")
     public String createLecturer(@ModelAttribute LectureDto dto, RedirectAttributes redirectAttributes) {
         logger.info("Create Lecturer");
@@ -166,6 +243,13 @@ public class AdminController {
         return "redirect:/admin/dashboard";
     }
 
+    /**
+     * Видаляє викладача з системи за його ідентифікатором.
+     *
+     * @param id                 ідентифікатор викладача для видалення
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на панель адміністратора (дашборд)
+     */
     @PostMapping("/lecturers/delete/{id}")
     public String deleteLecturer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         logger.info("Delete Lecturer with ID: {}", id);

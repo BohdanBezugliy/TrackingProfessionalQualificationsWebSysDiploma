@@ -35,6 +35,11 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+/**
+ * Контролер для управління профілями та сертифікатами викладачів адміністратором.
+ * Надає адміністратору можливості, аналогічні особистому кабінету викладача,
+ * зокрема редагування профілю, зміну пароля, видалення викладача та управління його документами.
+ */
 @Controller
 @RequestMapping("/admin/lecturer/{id}")
 @RequiredArgsConstructor
@@ -59,6 +64,13 @@ public class LecturerManagementController {
             "image/png"
     );
 
+    /**
+     * Відображає сторінку профілю конкретного викладача для адміністратора.
+     *
+     * @param id    ідентифікатор викладача
+     * @param model об'єкт {@link Model} для передачі даних викладача у представлення
+     * @return назва HTML-шаблону профілю викладача ("lecturerProfile")
+     */
     @GetMapping("/profile")
     @Transactional(readOnly = true)
     public String profile(@PathVariable Long id, Model model) {
@@ -67,6 +79,13 @@ public class LecturerManagementController {
         return "lecturerProfile";
     }
 
+    /**
+     * Відображає сторінку редагування профілю викладача адміністратором.
+     *
+     * @param id    ідентифікатор викладача
+     * @param model об'єкт {@link Model} для передачі даних викладача та списку кафедр
+     * @return назва HTML-шаблону сторінки редагування ("editLecturerProfile")
+     */
     @GetMapping("/profile/edit")
     @Transactional(readOnly = true)
     public String editProfile(@PathVariable Long id, Model model) {
@@ -76,6 +95,14 @@ public class LecturerManagementController {
         return "editLecturerProfile";
     }
 
+    /**
+     * Оновлює основну інформацію в профілі викладача.
+     *
+     * @param id                 ідентифікатор викладача
+     * @param dto                об'єкт {@link LecturerDto} з оновленими даними
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку профілю викладача
+     */
     @PostMapping("/profile/update")
     public String updateProfile(@PathVariable Long id, @ModelAttribute LecturerDto dto, RedirectAttributes redirectAttributes) {
         try {
@@ -88,6 +115,14 @@ public class LecturerManagementController {
         return "redirect:/admin/lecturer/" + id + "/profile";
     }
 
+    /**
+     * Оновлює пароль викладача (виконується адміністратором).
+     *
+     * @param id                 ідентифікатор викладача
+     * @param newPassword        новий пароль
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку профілю викладача
+     */
     @PostMapping("/profile/password")
     public String updatePassword(@PathVariable Long id, @RequestParam String newPassword, RedirectAttributes redirectAttributes) {
         lectureService.updatePassword(id, newPassword);
@@ -95,6 +130,13 @@ public class LecturerManagementController {
         return "redirect:/admin/lecturer/" + id + "/profile";
     }
 
+    /**
+     * Видаляє профіль викладача з системи.
+     *
+     * @param id                 ідентифікатор викладача для видалення
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на головну панель адміністратора (дашборд)
+     */
     @PostMapping("/delete")
     public String deleteLecturer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         lectureService.deleteLecturerById(id);
@@ -102,6 +144,9 @@ public class LecturerManagementController {
         return "redirect:/admin/dashboard";
     }
 
+    /**
+     * Допоміжний клас для зберігання підсумкових даних щодо підвищення кваліфікації за рік.
+     */
     public static class YearSummary {
         private List<UpskillEventDto> events = new ArrayList<>();
         private BigDecimal totalEcts = BigDecimal.ZERO;
@@ -121,6 +166,14 @@ public class LecturerManagementController {
         public int getTotalHours() { return totalHours; }
     }
 
+    /**
+     * Відображає сторінку з сертифікатами (документами про підвищення кваліфікації) конкретного викладача.
+     * Дані групуються за дисципліною та роком.
+     *
+     * @param id    ідентифікатор викладача
+     * @param model об'єкт {@link Model} для передачі даних у представлення
+     * @return назва HTML-шаблону сторінки сертифікатів ("lecturerCertificates")
+     */
     @GetMapping("/certificates")
     @Transactional(readOnly = true)
     public String certificates(@PathVariable Long id, Model model) {
@@ -155,6 +208,18 @@ public class LecturerManagementController {
         return "lecturerCertificates";
     }
 
+    /**
+     * Завантажує новий документ (сертифікат) підвищення кваліфікації для викладача.
+     *
+     * @param id                 ідентифікатор викладача
+     * @param file               завантажений файл (документ)
+     * @param documentType       тип документу
+     * @param disciplineIds      список ідентифікаторів дисциплін, до яких відноситься сертифікат
+     * @param eventDto           об'єкт {@link UpskillEventDto} з даними про захід підвищення кваліфікації
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку сертифікатів викладача
+     * @throws IOException у разі помилок при читанні файлу
+     */
     @PostMapping("/certificates/upload")
     @Transactional
     public String uploadCertificate(@PathVariable Long id, 
@@ -208,6 +273,18 @@ public class LecturerManagementController {
         return "redirect:/admin/lecturer/" + id + "/certificates";
     }
 
+    /**
+     * Оновлює інформацію про існуючий документ (сертифікат) підвищення кваліфікації.
+     *
+     * @param id                 ідентифікатор викладача
+     * @param eventId            ідентифікатор заходу (документу), що оновлюється
+     * @param file               новий файл (якщо потрібно оновити сам документ)
+     * @param documentType       новий тип документу
+     * @param eventDetails       оновлені деталі заходу
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку сертифікатів викладача
+     * @throws IOException у разі помилок при читанні файлу
+     */
     @PostMapping("/certificates/update/{eventId}")
     @org.springframework.transaction.annotation.Transactional
     public String updateCertificate(@PathVariable Long id, 
@@ -248,6 +325,14 @@ public class LecturerManagementController {
         return "redirect:/admin/lecturer/" + id + "/certificates";
     }
 
+    /**
+     * Видаляє документ (сертифікат) підвищення кваліфікації викладача за його ідентифікатором.
+     *
+     * @param id                 ідентифікатор викладача
+     * @param eventId            ідентифікатор заходу (документу) для видалення
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку сертифікатів викладача
+     */
     @PostMapping("/certificates/delete/{eventId}")
     public String deleteCertificate(@PathVariable Long id, @PathVariable Long eventId, RedirectAttributes redirectAttributes) {
         upskillEventRepository.deleteById(eventId);
@@ -255,6 +340,13 @@ public class LecturerManagementController {
         return "redirect:/admin/lecturer/" + id + "/certificates";
     }
 
+    /**
+     * Завантажує (скачує) файл документу (сертифікату) підвищення кваліфікації.
+     *
+     * @param id      ідентифікатор викладача
+     * @param eventId ідентифікатор заходу, файл якого потрібно завантажити
+     * @return об'єкт {@link ResponseEntity} з масивом байтів файлу для його завантаження
+     */
     @GetMapping("/certificates/download/{eventId}")
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> downloadCertificate(@PathVariable Long id, @PathVariable Long eventId) {

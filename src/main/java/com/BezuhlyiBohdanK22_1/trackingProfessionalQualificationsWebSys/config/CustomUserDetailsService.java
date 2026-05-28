@@ -12,11 +12,28 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 
+/**
+ * Сервіс для отримання деталей користувача, який реалізує інтерфейс {@link UserDetailsService}.
+ * Використовується Spring Security для завантаження даних користувача з бази даних
+ * за його електронною поштою під час автентифікації.
+ */
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
+    /**
+     * Репозиторій для доступу до даних користувачів у базі даних.
+     */
     private final UserRepository userRepository;
 
+    /**
+     * Завантажує дані користувача за його адресою електронної пошти.
+     * Перетворює знайдену сутність користувача на об'єкт {@link UserDetails},
+     * необхідний для подальшої роботи Spring Security.
+     *
+     * @param email адреса електронної пошти користувача, яка використовується як ім'я користувача (username)
+     * @return об'єкт {@link UserDetails}, що містить інформацію про користувача, його пароль та права доступу
+     * @throws UsernameNotFoundException якщо користувача з вказаною електронною поштою не знайдено в базі даних
+     */
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         UserEntity user = userRepository.findByEmail(email)

@@ -14,6 +14,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.stream.Collectors;
 
+/**
+ * Контролер для глобального управління дисциплінами.
+ * Доступний для адміністраторів і дозволяє переглядати, створювати, оновлювати та видаляти дисципліни.
+ */
 @Controller
 @RequestMapping("/admin/disciplines")
 @RequiredArgsConstructor
@@ -22,6 +26,12 @@ public class GlobalDisciplineController {
     private final DisciplineRepository disciplineRepository;
     private final DisciplineMapper disciplineMapper;
 
+    /**
+     * Відображає сторінку зі списком усіх дисциплін.
+     *
+     * @param model об'єкт {@link Model} для передачі списку дисциплін у представлення
+     * @return назва HTML-шаблону сторінки дисциплін ("globalDisciplines")
+     */
     @GetMapping
     @Transactional(readOnly = true)
     public String disciplines(Model model) {
@@ -29,6 +39,13 @@ public class GlobalDisciplineController {
         return "globalDisciplines";
     }
 
+    /**
+     * Створює нову дисципліну на основі переданих даних.
+     *
+     * @param dto                об'єкт {@link DisciplineDto} з даними нової дисципліни
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень (успіх або помилка)
+     * @return редирект на сторінку списку дисциплін
+     */
     @PostMapping("/create")
     public String createDiscipline(@ModelAttribute DisciplineDto dto, RedirectAttributes redirectAttributes) {
         try {
@@ -42,6 +59,14 @@ public class GlobalDisciplineController {
         return "redirect:/admin/disciplines";
     }
 
+    /**
+     * Оновлює назву існуючої дисципліни.
+     *
+     * @param id                 ідентифікатор дисципліни для оновлення
+     * @param dto                об'єкт {@link DisciplineDto} з новою назвою дисципліни
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень (успіх або помилка)
+     * @return редирект на сторінку списку дисциплін
+     */
     @PostMapping("/update/{id}")
     public String updateDiscipline(@PathVariable Long id, @ModelAttribute DisciplineDto dto, RedirectAttributes redirectAttributes) {
         try {
@@ -56,6 +81,14 @@ public class GlobalDisciplineController {
         return "redirect:/admin/disciplines";
     }
 
+    /**
+     * Видаляє дисципліну за її ідентифікатором.
+     * Якщо до дисципліни прив'язані документи (сертифікати), видалення неможливе.
+     *
+     * @param id                 ідентифікатор дисципліни для видалення
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень (успіх або помилка)
+     * @return редирект на сторінку списку дисциплін
+     */
     @PostMapping("/delete/{id}")
     @Transactional
     public String deleteDiscipline(@PathVariable Long id, RedirectAttributes redirectAttributes) {

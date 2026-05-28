@@ -11,8 +11,25 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import java.io.IOException;
 import java.util.Set;
 
+/**
+ * Кастомний обробник успішної автентифікації.
+ * Відповідає за перенаправлення користувачів на відповідні сторінки (панелі керування)
+ * залежно від їхньої ролі (ADMIN або USER) після успішного входу в систему.
+ */
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
+    /**
+     * Логер для запису подій, пов'язаних із успішною автентифікацією.
+     */
     Logger logger = LoggerFactory.getLogger(CustomAuthenticationSuccessHandler.class);
+    /**
+     * Обробляє подію успішної автентифікації.
+     * Визначає роль користувача та виконує перенаправлення на відповідну сторінку панелі керування.
+     *
+     * @param request        HTTP-запит
+     * @param response       HTTP-відповідь для виконання перенаправлення
+     * @param authentication об'єкт автентифікації, що містить дані користувача та його ролі
+     * @throws IOException якщо виникає помилка вводу/виводу під час перенаправлення
+     */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,

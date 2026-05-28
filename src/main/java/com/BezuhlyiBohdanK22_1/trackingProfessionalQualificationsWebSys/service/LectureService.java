@@ -21,15 +21,38 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Реалізація сервісу для управління викладачами (лекторами).
+ * Забезпечує бізнес-логіку для створення викладачів, оновлення їх профілів, 
+ * управління обліковими записами (паролями) та пошуку.
+ */
 @Service
 @RequiredArgsConstructor
 public class LectureService implements ILectureService {
+    
+    /** Репозиторій для роботи з сутностями викладачів. */
     private final LectureRepository lectureRepository;
+    
+    /** Репозиторій для роботи з користувачами системи. */
     private final UserRepository userRepository;
+    
+    /** Репозиторій для роботи з кафедрами. */
     private final DepartmentRepository departmentRepository;
+    
+    /** Репозиторій для роботи з даними про освіту викладачів. */
     private final EducationRepository educationRepository;
+    
+    /** Компонент для шифрування паролів. */
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Створює нового викладача, його обліковий запис та зберігає інформацію про його освіту.
+     * Перевіряє унікальність email перед створенням.
+     * 
+     * @param dto об'єкт {@link LectureDto}, що містить усі необхідні дані для реєстрації
+     * @throws UserAlreadyExistsException якщо користувач з таким email вже існує
+     * @throws RuntimeException якщо вказану кафедру не знайдено
+     */
     @Transactional
     public void saveLecturer(LectureDto dto) {
         String email = dto.userRegistrationDto().email();
@@ -75,22 +98,46 @@ public class LectureService implements ILectureService {
         }
     }
 
+    /**
+     * Знаходить викладача за його унікальним ідентифікатором.
+     * 
+     * @param lectureId ідентифікатор викладача
+     * @return знайдена сутність {@link LectureEntity}
+     * @throws LectureNotFoundException якщо викладача не знайдено
+     */
     @Override
     public LectureEntity findByLectureId(Long lectureId) {
         return lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new LectureNotFoundException("Lecture not found!"));
     }
 
+    /**
+     * Отримує список усіх викладачів з підтримкою пагінації.
+     * 
+     * @param pageable налаштування пагінації (номер сторінки, розмір, сортування)
+     * @return сторінка з викладачами
+     */
     @Override
     public org.springframework.data.domain.Page<LectureEntity> findAll(org.springframework.data.domain.Pageable pageable) {
         return lectureRepository.findAll(pageable);
     }
 
+    /**
+     * Зберігає або оновлює існуючого викладача напряму.
+     * 
+     * @param lectureEntity сутність викладача для збереження
+     */
     @Override
     public void save(LectureEntity lectureEntity) {
         lectureRepository.save(lectureEntity);
     }
 
+    /**
+     * Видаляє викладача, його обліковий запис та всі пов'язані дані про освіту.
+     * 
+     * @param lectureId ідентифікатор викладача, якого потрібно видалити
+     * @throws LectureNotFoundException якщо викладача не знайдено
+     */
     @Override
     @Transactional
     public void deleteLecturerById(Long lectureId) {
@@ -112,6 +159,16 @@ public class LectureService implements ILectureService {
         }
     }
 
+    /**
+     * Оновлює профіль викладача (персональні дані, кафедру, email, дані про освіту).
+     * Якщо email змінюється, перевіряється його унікальність.
+     * Дані про освіту повністю замінюються новими.
+     * 
+     * @param lectureId ідентифікатор викладача
+     * @param dto DTO з новими даними профілю
+     * @throws LectureNotFoundException якщо викладача не знайдено
+     * @throws UserAlreadyExistsException якщо новий email вже використовується іншим користувачем
+     */
     @Override
     @Transactional
     public void updateProfile(Long lectureId, LecturerDto dto) {
@@ -168,6 +225,14 @@ public class LectureService implements ILectureService {
         lectureRepository.save(lecturer);
     }
 
+    /**
+     * Оновлює пароль для облікового запису викладача.
+     * Пароль хешується перед збереженням.
+     * 
+     * @param lectureId ідентифікатор викладача
+     * @param newPassword новий пароль у відкритому вигляді
+     * @throws LectureNotFoundException якщо викладача не знайдено
+     */
     @Override
     @Transactional
     public void updatePassword(Long lectureId, String newPassword) {
@@ -181,6 +246,16 @@ public class LectureService implements ILectureService {
         }
     }
 
+    /**
+     * Виконує пошук викладачів за заданим ключовим словом та/або ідентифікаторами факультету і кафедри.
+     * Ключове слово застосовується як маска "%keyword%" до відповідних полів.
+     * 
+     * @param keyword рядок для пошуку 
+     * @param facultyId ідентифікатор факультету (якщо null — ігнорується)
+     * @param departmentId ідентифікатор кафедри (якщо null — ігнорується)
+     * @param pageable параметри пагінації та сортування
+     * @return сторінка з результатами пошуку
+     */
     @Override
     public org.springframework.data.domain.Page<LectureEntity> searchLecturers(String keyword, Long facultyId, Long departmentId, org.springframework.data.domain.Pageable pageable) {
         String keywordPattern = null;

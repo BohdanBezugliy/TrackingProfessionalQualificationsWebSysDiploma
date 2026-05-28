@@ -32,6 +32,11 @@ import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Контролер для особистого кабінету викладача.
+ * Відповідає за перегляд та редагування профілю, управління паролем та електронною поштою,
+ * а також за завантаження та перегляд сертифікатів підвищення кваліфікації.
+ */
 @Controller
 @RequestMapping("/user")
 @RequiredArgsConstructor
@@ -58,17 +63,36 @@ public class LecturerPersonalController {
             "image/png"
     );
 
+    /**
+     * Отримує сутність поточного викладача на основі даних авторизації.
+     *
+     * @param principal об'єкт {@link Principal} з інформацією про поточного користувача
+     * @return об'єкт {@link LectureEntity} для поточного викладача
+     * @throws RuntimeException якщо користувач не авторизований або профіль не знайдено
+     */
     private LectureEntity getCurrentLecturer(Principal principal) {
         if (principal == null) throw new RuntimeException("User not authenticated");
         return lectureRepository.findByUserEmail(principal.getName())
                 .orElseThrow(() -> new RuntimeException("Профіль викладача не знайдено для поточного користувача"));
     }
 
+    /**
+     * Перенаправляє користувача на сторінку його профілю.
+     *
+     * @return редирект на "/user/profile"
+     */
     @GetMapping("/dashboard")
     public String dashboard() {
         return "redirect:/user/profile";
     }
 
+    /**
+     * Відображає сторінку особистого профілю викладача.
+     *
+     * @param principal об'єкт {@link Principal} для ідентифікації поточного користувача
+     * @param model     об'єкт {@link Model} для передачі даних викладача у представлення
+     * @return назва HTML-шаблону профілю ("userProfile")
+     */
     @GetMapping("/profile")
     @Transactional(readOnly = true)
     public String profile(Principal principal, Model model) {
@@ -77,6 +101,13 @@ public class LecturerPersonalController {
         return "userProfile";
     }
 
+    /**
+     * Відображає сторінку редагування профілю викладача.
+     *
+     * @param principal об'єкт {@link Principal} для ідентифікації поточного користувача
+     * @param model     об'єкт {@link Model} для передачі даних викладача та списку кафедр у представлення
+     * @return назва HTML-шаблону сторінки редагування ("userEditProfile")
+     */
     @GetMapping("/profile/edit")
     @Transactional(readOnly = true)
     public String editProfile(Principal principal, Model model) {
@@ -86,6 +117,14 @@ public class LecturerPersonalController {
         return "userEditProfile";
     }
 
+    /**
+     * Оновлює основну інформацію в профілі викладача.
+     *
+     * @param principal          об'єкт {@link Principal} для ідентифікації поточного користувача
+     * @param dto                об'єкт {@link LecturerDto} з оновленими даними
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку профілю
+     */
     @PostMapping("/profile/update")
     public String updateProfile(Principal principal, @ModelAttribute LecturerDto dto, RedirectAttributes redirectAttributes) {
         try {
@@ -99,6 +138,14 @@ public class LecturerPersonalController {
         return "redirect:/user/profile";
     }
 
+    /**
+     * Оновлює пароль викладача.
+     *
+     * @param principal          об'єкт {@link Principal} для ідентифікації поточного користувача
+     * @param newPassword        новий пароль
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку профілю
+     */
     @PostMapping("/profile/password")
     public String updatePassword(Principal principal, @RequestParam String newPassword, RedirectAttributes redirectAttributes) {
         LectureEntity lecturer = getCurrentLecturer(principal);
@@ -107,6 +154,16 @@ public class LecturerPersonalController {
         return "redirect:/user/profile";
     }
 
+    /**
+     * Оновлює електронну пошту (email) викладача.
+     * Якщо email змінено успішно, сесія анулюється і користувач перенаправляється на сторінку логіну.
+     *
+     * @param principal          об'єкт {@link Principal} для ідентифікації поточного користувача
+     * @param newEmail           нова електронна пошта
+     * @param request            об'єкт {@link HttpServletRequest} для доступу до поточної сесії
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень у разі помилки
+     * @return редирект на сторінку профілю, редагування або логіну
+     */
     @PostMapping("/profile/email")
     public String updateEmail(Principal principal, @RequestParam String newEmail, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         LectureEntity lecturer = getCurrentLecturer(principal);
@@ -134,6 +191,13 @@ public class LecturerPersonalController {
         return "redirect:/user/profile";
     }
 
+    /**
+     * Відображає сторінку з сертифікатами (документами про підвищення кваліфікації) викладача.
+     *
+     * @param principal об'єкт {@link Principal} для ідентифікації поточного користувача
+     * @param model     об'єкт {@link Model} для передачі даних у представлення
+     * @return назва HTML-шаблону сторінки сертифікатів ("userCertificates")
+     */
     @GetMapping("/certificates")
     @Transactional(readOnly = true)
     public String certificates(Principal principal, Model model) {
@@ -167,6 +231,18 @@ public class LecturerPersonalController {
         return "userCertificates";
     }
 
+    /**
+     * Завантажує новий документ (сертифікат) підвищення кваліфікації для поточного викладача.
+     *
+     * @param principal          об'єкт {@link Principal} для ідентифікації поточного користувача
+     * @param file               завантажений файл (документ)
+     * @param documentType       тип документу
+     * @param disciplineIds      список ідентифікаторів дисциплін, до яких відноситься сертифікат
+     * @param eventDto           об'єкт {@link UpskillEventDto} з даними про захід підвищення кваліфікації
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку сертифікатів
+     * @throws IOException у разі помилок при читанні файлу
+     */
     @PostMapping("/certificates/upload")
     @Transactional
     public String uploadCertificate(Principal principal,
@@ -220,6 +296,18 @@ public class LecturerPersonalController {
         return "redirect:/user/certificates";
     }
 
+    /**
+     * Оновлює інформацію про існуючий документ (сертифікат) підвищення кваліфікації.
+     *
+     * @param principal          об'єкт {@link Principal} для ідентифікації поточного користувача
+     * @param eventId            ідентифікатор заходу (документу), що оновлюється
+     * @param file               новий файл (якщо потрібно оновити сам документ)
+     * @param documentType       новий тип документу
+     * @param eventDetails       оновлені деталі заходу
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку сертифікатів
+     * @throws IOException у разі помилок при читанні файлу
+     */
     @PostMapping("/certificates/update/{eventId}")
     @Transactional
     public String updateCertificate(Principal principal,
@@ -265,6 +353,14 @@ public class LecturerPersonalController {
         return "redirect:/user/certificates";
     }
 
+    /**
+     * Видаляє документ (сертифікат) підвищення кваліфікації викладача за його ідентифікатором.
+     *
+     * @param principal          об'єкт {@link Principal} для ідентифікації поточного користувача
+     * @param eventId            ідентифікатор заходу (документу) для видалення
+     * @param redirectAttributes об'єкт для передачі flash-повідомлень
+     * @return редирект на сторінку сертифікатів
+     */
     @PostMapping("/certificates/delete/{eventId}")
     public String deleteCertificate(Principal principal, @PathVariable Long eventId, RedirectAttributes redirectAttributes) {
         LectureEntity lecturer = getCurrentLecturer(principal);
@@ -280,6 +376,13 @@ public class LecturerPersonalController {
         return "redirect:/user/certificates";
     }
 
+    /**
+     * Завантажує (скачує) файл документу (сертифікату) підвищення кваліфікації.
+     *
+     * @param principal об'єкт {@link Principal} для ідентифікації поточного користувача
+     * @param eventId   ідентифікатор заходу, файл якого потрібно завантажити
+     * @return об'єкт {@link ResponseEntity} з масивом байтів файлу для його завантаження
+     */
     @GetMapping("/certificates/download/{eventId}")
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> downloadCertificate(Principal principal, @PathVariable Long eventId) {
